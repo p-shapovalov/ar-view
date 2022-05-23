@@ -1,0 +1,883 @@
+{
+    "id": "q1",
+    "text": "shelf test",
+    "type": "sh",
+    "shopping_cart": true,
+    "na": true,
+    "store": "target",
+    "shelf_type": "regular",
+    "shelves_amount": 3,
+    "stock_type": "full",
+    "max_qty_per_product": 10,
+    "min_qty": 0,
+    "price_mask": "{{price}}",
+    "shelves_config": [
+        {
+            "uid": "104df3e9e848447b84054c597b8bae75",
+            "text": "",
+            "height": 20,
+            "stacking": "off",
+            "shelf_type": "regular"
+        },
+        {
+            "uid": "13c8a056a5e04c46b754428e9fea74b4",
+            "text": "",
+            "height": 20,
+            "stacking": "off",
+            "shelf_type": "regular"
+        },
+        {
+            "uid": "ae44c3252efc43519b172eb9ba703005",
+            "text": "",
+            "height": 20,
+            "stacking": "off",
+            "shelf_type": "regular"
+        }
+    ],
+    "answers": [
+        {
+            "id": "q1a1",
+            "text": "1",
+            "type": "sh",
+            "fixedPosition": false,
+            "units": "2",
+            "image": {
+                "original_path": "images.aytm.com/c0Ax9dQSwQzlZYixSLi18OiC.png",
+                "original_url": "https://images.aytm.com/c0Ax9dQSwQzlZYixSLi18OiC.png",
+                "width": 256,
+                "height": 618,
+                "trimmed_image": {
+                    "width": 252,
+                    "height": 616
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAQCAMAAADtX5XCAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAABSlBMVEVOVWAAAABNU1xTVVY8WIyESQBhZGWtkGP///8AB2ArSYIlRH8mRH0vTII9V4ZdcZYpR38hQX4uPVlSXGxWYXFOZY8vS38RHjgmKClESEtLUVo/WowtSX0QEhMmKCk8V4gxUIwiJCYrLS4xNDY+QELt7e5JTE44Oz06PT5xc3NRVFY3OjwkKzdbYWdQU1RPUlNYYnNvbmtSVVdCRUaBi5FqcHJbXl93kKJbXmBoj6xgY2Q1Zo1ZXF0ySGRIS007PUMmKCoNEBECAwMAAQEPEhMtMDEWNXITK1kEBgoHCAgMDQ4TFRYSFBYFBwkcHh8TGydcbIcHCAlXY2y5x9cvMDAHDhpBWn+MpLxmkK8hIiIMHTcrWYs3bJVHgqwjJScPIkEiVolEcZc6b5onKywOGi0gUXwpXYgcRW8gJCYLDxIWITARITkZIDL///8ma69iAAAARnRSTlMAAAAAAAAAAAAApOHVtmYNTt/4fgIdv/DiZQJvaKCHLwmKfZuTARrV0xlt/PxnHc/DE3D79ljDqOzY9ebi3Lq4btr5/uNwIcjPgwAAAAFiS0dECIbelXoAAAAHdElNRQfmAwsPAhZR1j8AAAAAAW9yTlQBz6J3mgAAAIRJREFUCNcFwUMCwwAABMBNbVupbRupbdv8/7kz4PEFQpEYkEgbTZlcAaVK3dJoddAbjG0TQQNptnSsdAIMpq1rdxBgOV09t4cNjtfX9we4CIYGw1E4gmhsPJnGE0jO5ovlKoX0erPd7TPIHo6n8yWH/PV2fzwLKL7en++vhHKFqlK1+h9RdRdDiHbqmwAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMi0wMy0xMVQxNTowMjoyMiswMDowMPk75wUAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjItMDMtMTFUMTU6MDI6MjIrMDA6MDCIZl+5AAAAAElFTkSuQmCC"
+            },
+            "description": "",
+            "price": 15,
+            "discounted_price": 14,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 8.18,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a2",
+            "text": "3",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/N7qPezeK2mii0FM428j3VPlR.png",
+                "original_url": "https://images.aytm.com/N7qPezeK2mii0FM428j3VPlR.png",
+                "width": 640,
+                "height": 640,
+                "trimmed_image": {
+                    "width": 452,
+                    "height": 593
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAACE1BMVEUAAACmpqT/0TIPFWyGhYX///+cczM4MjSGhYT/vRE+ODuqp6XTlCM8NjlkUjrokjD//3EoJyYAIlk1NDRVTDg/MCEAAHqefTBVQ0ctLCy9kTNUSkwvLS1USjZPRUfksD8oJiXEnz3a19PxujQAAB3Y1dHOmjLNtH11XTGNd0QAAiQAAChLRTinp6WSkpJ4eHakpKKbm5umnonny3/WpjjYpjrEmT2zsrHBv72RkI9LS0ttbWyamZhlZGKWj3zAm0m/jS6bdDKAYTGrqqmrqKeVbCi/vbuVk5FfX15BQUBqaWiIhIKLaSOQaig7OjhhZGmdh3GqdjI/NCQ0LSR/ZkdeSCeXekA7OjcLEB0nKSxQQi5eUjdQSDg6NCwbHR+BaTMtLCwbHB18ZjYvLi0dHR1bTTTerkTksDyNcTozMS5qVjIAAABmcDzSljHVmzBqWDdDPTViXlqlo5+BZitjTy66t7P////aoTFvVSTEvbDhy5Z1XTBnTh54XieVdSl6ZDF0ZD53YTiJfGmQiXqFbz4OERgqJiEoKCotLjE4NzU4NjE2My0mIhyHhoQ8PDxNTUycm5pRUVFjZWiAdF59XSGKZCJVT0qGfW2agkpqUR2wfy67kD6pgzFyWzHZp0Z3YDVRRixJQTAsKiYtKiU/OjWifTKniT9YT0FPPy6UjoZBOy+7mTXuuTTGlTGreze1ppf///+UIUiMAAAAjXRSTlMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHyY8PUZnT0MbHJXb4O7v8fz287woUe2MBFeqxuf592gDDTPP8YMHh/1tBVDf+kxY+2U18IEZ2X4ZSTzalAEDj/vr/OpXXPC0BR3XvAkYvfT8/vvz654HGkdrdGFIMRKyK35YAAAAAWJLR0QF+G/pxwAAAAd0SU1FB+YDCw8CKwm+cxEAAAABb3JOVAHPoneaAAAA4ElEQVQY02NgYGDU1dM3MDQyNjE1Y2JmYGBhNbewtLK2sbWzd3B0YmNn4GB1dunt658wcdLkKVNdObkYGLjd3D08vbynTZ8x08eXh5cBBPz8AwJnzZ4TFBzCxwAB/AKhc+eFhUcICkEFGIQjo+ZHx4gwwIGoWGzcgnhxCYSIZELiwiQpaYSATHLKolRZORhXPi09I3NxVrYClK+Yk5uXX7CksIhBCcxXVikuWbps+YqVpWWqYAG18opVq9esXbe+skodLKBRXVNbV9/Q2NTcogkW0NJubWvv6Ozq7tFhYAAA9u08LsGQpdgAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjItMDMtMTFUMTU6MDI6NDMrMDA6MDCZI+U2AAAAJXRFWHRkYXRlOm1vZGlmeQAyMDIyLTAzLTExVDE1OjAyOjQzKzAwOjAw6H5digAAAABJRU5ErkJggg=="
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 15.24,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a3",
+            "text": "4",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/1gN5XivD88Qa9gGExg5uyND0.png",
+                "original_url": "https://images.aytm.com/1gN5XivD88Qa9gGExg5uyND0.png",
+                "width": 1433,
+                "height": 2218,
+                "trimmed_image": {
+                    "width": 1342,
+                    "height": 2125
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAQCAMAAAAYoR5yAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAB3VBMVEXz3rC0tLW8vL6ZmZphYWMkJCUhISI3NzhDQ0VwcHG+vr+fn5qQkISKin++vrmlpFeXlDeZljqoplXGw4W2tGOtqk+9u3O2smHAvni1sF3Avni0sFzBv3q+u23Lyozk6K/q7cHt8MXx89LR0JbV1KGxrVm6t2uxrVq6tmmzrl26tWa6tWitqVO1rFXFvG+jnj+bli+WkSiWkSmXkiqYkyigmC6snz7dvWqAgHNSUkUmJRkwMCRQUEOWkjKTjzCNiimRjS+VkjWopUSdmiudmSqdmSmfnC+joDmepFKFljp4ix9vghZneBRebRNncyuboF+Pm0N/mz2Np0qFnkl5kEVzhklfcT2MlFmUnkaBnD6Pq1ShtXSZqm+PnmxtfU2WnGG7vnCNoUR2niqvu2WepEVvgCp4hkPCxIXh5aXP1ny3xEjYyXXRyHqTozymtl7l6bLq7bvX4Hu/xDfKxUjc0HPEwGWnwl/p7cLh4rHh5qLK0Gm4xkvEx2TNzHrh6Kbl5rzPzpTu8Mnb4J/EyYG7w3nK047u8MvW1aLQzpbx8tfk6LnM0JvGypbX3avx8tbW1aHGxITk5sXc38Hg37zj4Lvl4r3n5sLMyYurqE+lo0alo0Wmo0Wmo0Ssp0v///+bzdSTAAAAOHRSTlMAH42jpqenpqOSKELw9lIq4Og2ivv9mrXFssKvv6y9qbqmuKO1oLKdr4+fMNDWOC6Hsb2+so00AZ8riaAAAAABYktHRJ6fsqMLAAAAB3RJTUUH5gMLDwMUpsNvbQAAAAFvck5UAc+id5oAAAC5SURBVAjXY2BkYmZhZWPn4ORi4OaxsLSysrbh5WPgF7C1s7d3cBQUYhAWcXJ2cXVzFxVjEPfw9PL28fXzl2CQDAgMCg4JDQuXYpCOiIyKjomNi5dhkE1ITEpOSU1Ll2OQz8jMys7JzctXYFAsKCwqLiktK1diUK6orKquqa2rV2FQbWhsam5pbWtXY1Dv6Ozq7unt69dg0JwwcdLkKVOnTddi0NaZMXPW7DlzdfUYGPQNDI2MTUzNzAHDIjDtVejNAQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMi0wMy0xMVQxNTowMzoxOSswMDowMJpx3yIAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjItMDMtMTFUMTU6MDM6MTkrMDA6MDDrLGeeAAAAAElFTkSuQmCC"
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 12.63,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a4",
+            "text": "5",
+            "type": "sh",
+            "fixedPosition": false,
+            "units": "2",
+            "image": {
+                "original_path": "images.aytm.com/0HvXqP8ruDo6PmubMbarKo1c.png",
+                "original_url": "https://images.aytm.com/0HvXqP8ruDo6PmubMbarKo1c.png",
+                "width": 601,
+                "height": 1885,
+                "trimmed_image": {
+                    "width": 601,
+                    "height": 1855
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAQCAMAAADpqkX/AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAA81BMVEU9MblQRsNLQbhQRcJCNr4vJotBOowwKm5BOYgxKIuDiISfqaGOmJCfqaKTmJSisKjA0MfD0smtuLC8xcCgra7l6efo7OqxvbaCiYRjaWWBiIS0v7jN3dTj8Oni8unZ6OHn6+rl7uvc4d/c4eOqs8Pe6OSiyLqMqaKis7HDytTU4umQw9uYvs/a39+gqbrR5O2p2fC7ztyiqLV3h6Lp7e68w89ib4hic5RsepG+wsxteZgtN09XZIOKl65zfpJTYX5OVnhUZYWzvM1lb4JDUWhOY4xPb329yMW6vcV0e4mBi6CGnZ7I0c7Q09K6vLvV19b///+P9u1vAAAAHHRSTlMRqOGkDxis2KwVB4/djgZy7e1x7ez+/rjr8uu2kZ1dMQAAAAFiS0dEUONuTLwAAAAHdElNRQfmAwsPAxM4p/rOAAAAAW9yTlQBz6J3mgAAAGhJREFUCNdjYGBkYmZhYGVj5+Bk4OLm4eVj4BeQERRiEJaVkxdhUFBUUlZhUFVT19Bk0NLW0dVj0DcwNDJmMDE1M7dgsLSytrFlsLN3cHRicHZxdXNn8PD08vZhEPX18xdjEJeQlJIGALruDFkPlJqOAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDIyLTAzLTExVDE1OjAzOjE4KzAwOjAwPAbUlgAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyMi0wMy0xMVQxNTowMzoxOCswMDowME1bbCoAAAAASUVORK5CYII="
+            },
+            "description": "description",
+            "price": 10,
+            "discounted_price": 9,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 6.48,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a5",
+            "text": "6",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/klJWwuL9fthqj3QXk79i302y.png",
+                "original_url": "https://images.aytm.com/klJWwuL9fthqj3QXk79i302y.png",
+                "width": 2556,
+                "height": 3779,
+                "trimmed_image": {
+                    "width": 2424,
+                    "height": 3735
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAQCAMAAAD3Y3VMAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAB4FBMVEX///8AAACckqHSr3nDlkDClyfeti22kSVZRRpBMBRtUS3Zt4mnm7XWsHbYtIMxLjBoVj9uXEgiIR9aWllGRkZHRURraWbNzczNy8rZ2dnU09Hh4eHe3dzj4+Ph4N7k5OTh4N7l5eXh4N7m5uXh4N7m5uXh4N7n5+bi4d/Y2NfU0tFnZmVXVlZNTExLS0pCQkM8PDw5OTk/Pj5HR0ZVU1JycG6/jza2hxrSpB6lexY/LAsoHAhcQSFhTCluWzJ+ajhtXDVHPzI2MSk4LB9FRUZnaGtxcnZ1dXhxcXJdXFw9PDzNzMucssR9obGBmZ9vhJxgdJ1gg6mHnKu3trTb2ticudNyoKOHm25uhHhYd6hPir+DoLW/vbvi4uLG0du1x9mxwNSksceWo7yYrsKqtr7Kycfj4+Le3t3i4uHj4+PTx8LMxMDIyMfCwcDLysnc3d3g4uLdy7i+gVS9l33Fw8HAwMDj4uLc3d7dz8bdsn/ZuHe+ilq/r6fBwsLKysnd3t/bx7rOiVjGej21bkfAtbDAwcHg397OrJqxclm3lIXEwsHKycna29vS1NXS09TJyMe9vb25urq+vr/a29zU19jKzM7ExMXU09PLzMzR0dHQz87IxsS8u7q2traxsbH///8OHVL3AAAANnRSTlMAAAGF3Nzc3Nzc3G0ErZIOuaAFa/XsULubyarOsNGz07TTtdS21bfVt9S2k/X+/v7+/v7+8Xdv6YkPAAAAAWJLR0QAiAUdSAAAAAd0SU1FB+YDCw8GD1HRUsQAAAABb3JOVAHPoneaAAAAx0lEQVQI12NgYmZhZWPn4OTiZmDg4TUzt7C0srbhY2TgF7C1s3dwdHIWFGIQFnFxdXP38PQSFWMQ9/bx9fMPCAwKlmCQDAkNC4+IjIqOkWKQjo2LT0hMSk5JlWGQTUvPyMzKzsnNk2OQT8svKCwqLinNU2BQLCuvqKyqrqmtU2JQLqtvaGxqbmmtU2FQLctva+/o7CrtVgOye3r7+idMnARkq2fmT54ydVppaZ4Gg+b0GTNnzZ4zd94cLQZtHV09fQNDI2MTUwBVXzhMb8L76gAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMi0wMy0xMVQxNTowNjoxNCswMDowMB2PdaYAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjItMDMtMTFUMTU6MDY6MTQrMDA6MDBs0s0aAAAAAElFTkSuQmCC"
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 12.98,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a6",
+            "text": "7",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/M8hbt7xQvzNXKazzVNHVO5bM.png",
+                "original_url": "https://images.aytm.com/M8hbt7xQvzNXKazzVNHVO5bM.png",
+                "width": 202,
+                "height": 484,
+                "trimmed_image": {
+                    "width": 156,
+                    "height": 471
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAQCAMAAADtX5XCAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAABSlBMVEUAAACLUFuSWmT31Db00DLxyyP52j392yDErVC/qFjEr1/IskaxlJ2seIKwf4m1naaHSlWhXWqxXm20ZXSeWGaHSFOedHy3ipO2hY+idn7f3Nzq6Ojz8PHi3+Do6Ojp6en19fXo6Ojl5eXu7u319fXn5+fl5eXp6end3Nzo6Ojl5ebPzszs6t3o6e3k493s6dD49eDp6eLl3ZDv6J7276Pp4ZDmzznx3FL440zr1DHvuij5x0T8zz31wSHNhEnanmjip2zUiEaod4edcXxxO0RkKTGMWmOve4mweIu1mUWmZnK6YHDFgo3Bc4DQl6La2dnY3Nnb5t2fnZ6Sk5K2u7fDycSvubLX29jS19W0wcTN0M62tKm1tKPY06vAwI1sh4LW1pPGxXZ6mVvJ1InXxTWgmkLn1lHfsSOegTTtwkDHhDe+eCPZoFz///9+UgmuAAAASXRSTlMAAAAauN6rECfn2hkTzb0KCIX18XQENOreI0bz6jNH8+o0R/PrNUn06zVK9Os1SvTsNkr17DZL9ew3SvTsNkPz6S8hlre8tYoVp8GuwAAAAAFiS0dEbbsGAK0AAAAHdElNRQfmAwsPAwC8GbsQAAAAAW9yTlQBz6J3mgAAAINJREFUCNcFwUMCwwAABMCtbTO1baS2bSvl/8+dARhMFpsDgMvr8AUATSjqiiV0SGXynkKpglrTHwy1OugNo/HEaIKZmM7mFits9sVy5XDC5V5vth4vfP7d/hAIIhQ+ns6RKGLxy/WWSCKVvj+oTBa5/PP1Jgsolj7fX7mCaq3eaLbaf11IFv9bMHhSAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDIyLTAzLTExVDE1OjAzOjAwKzAwOjAww0OabwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyMi0wMy0xMVQxNTowMzowMCswMDowMLIeItMAAAAASUVORK5CYII="
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 6.62,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a7",
+            "text": "8",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/7SoUx65n7k2VNVLp1kuCEam5.png",
+                "original_url": "https://images.aytm.com/7SoUx65n7k2VNVLp1kuCEam5.png",
+                "width": 202,
+                "height": 484,
+                "trimmed_image": {
+                    "width": 158,
+                    "height": 469
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAQCAMAAADtX5XCAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAABSlBMVEUAAABbJCdSHR3AJzThJjzsMEviKD3DKTWJLziZPUiTN0CFKjFSNzt6Ozl+OTVJLTBSGRtwGBuiIieqJyx1GBpECwtsSU+SV1yZWl5vSk6IiZivsLvTz9emqrWanap/foe/pKuns7+ip7OjmaHEvcSnrrqgp7LKsLbO0dmlrLWjqbTP0dnS1t2mrbaboq7KydLMxcmkr7mToK6zgoiirKWepbSKkqGwnqq1t8CMkJ2Iipixsb6wrrmLjptoUFeGWmGMXGFqUlZOLzJUJCddJixgKzNgJSpXIiRAJiWoUl6mTknLREzNeH/noKrSfoXp6fDh6N/q4uGYk56Yk525goark5q2m6TDoafqurzuvLzq2Nzt7fLw1tvt193rzdPveonoY2zBR0jJO0LES0nDjZTQr7bTwMbSzdba0trRydGmbnasdn+qbnX////Grs9nAAAASXRSTlMAAAAcw+jEHSLi4iITzcwSB4X394IGKePhJjXr6TE27OkxN+zqMzjs6jQ47es1Oe3qMzru6TI67ukyOu7pMTfs5y4TcpSZknETngKWoAAAAAFiS0dEbbsGAK0AAAAHdElNRQfmAwsPAwnFxQO0AAAAAW9yTlQBz6J3mgAAAINJREFUCNcFwUMCwwAABMCtbTO1baS2bSvl/8+dARhMFpsDgMvr8AUATSjqiiV0SGXynkKpglrTHwy1OugNo/HEaIKZmM7mFits9sVy5XDC5V5vth4vfP7d/hAIIhQ+ns6RKGLxy/WWSCKVvj+oTBa5/PP1Jgsolj7fX7mCaq3eaLbaf11IFv9bMHhSAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDIyLTAzLTExVDE1OjAzOjA5KzAwOjAwVtvfvAAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyMi0wMy0xMVQxNTowMzowOSswMDowMCeGZwAAAAAASUVORK5CYII="
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 6.74,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a8",
+            "text": "11",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/G5y9DF1KSUVzN1yxirNwsVKi.png",
+                "original_url": "https://images.aytm.com/G5y9DF1KSUVzN1yxirNwsVKi.png",
+                "width": 1542,
+                "height": 1558,
+                "trimmed_image": {
+                    "width": 1438,
+                    "height": 1519
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAC5VBMVEUrFFAAAAB2F8RWVlZ+fn6Xl5eKiopkZGQwMDAREREJCQkYGBhERER3d3ePj4+Ojo5ra2szMzMeHh5nZ2dNTU0uLi5zdHNiYmE9PTx1cGybkIVbWFw9PDy2eD7UlFBPMF04KUTVijniolVbM288HlnQhTfen1NYM3AwGEzLfzPcm1BVMXEUCSnEeDfYmU5SMHK1amPSlF5QL3GfT6jCg5hOLXCHM8uyctBMK25mDLqsatdJKWunY9NXM3lDJGegWc5KKm46Hl6aUMmeWMuWUL9+NKVkIotQIXRBIWRIJmtUL3hcOH5TMXY+IGMyF1eMjIuXl5eAgIBTU1MpKSkXFxYVFRUeHh47OztycnGQkJCEhISVlpaam5t+f39RUlEpKikUFBQXGBcdHh0sLCyWl5afoJ6UlJOhmI2HfnVaUUo4LykkHBcfFxQlHhs9NjR1bm6UjY+alJiKhIrdo2DOkVCzbC6ZThmKPxN6MxJwLRV3NymNVFmaaH6aZo16T33ttGrIl1yYaTmLUh+NShduNxdnMRt/QTeUXmeUb4SkbpyGVI3rsmjJmFyOZjqBUCF2Qhl7PhhuMRx0R0OceX6YcY2ha6GCUo/or2bip1vQizq+cCGqXhqbTR2KPi+qgXXMs6uyg6meaKh6T47msGPiqlrTkUHEgjeycTSiZT6WYlyedn69oaishq2TZqVzTI3krmHhrFzUpmfFn2mqb0STWU59Umh8VXuVb5uUa6eMZKRuSYvYoYHYnmLJj1G1fEuia1CBTlpZNGZtTICMapuRa6eIYaNpRYjHjrrJj4u1cVuYTESTV1x+V2xTMGhoRn6JZ5mWcqiFXqBkQIS8gdG6fq2jXIOGNWdvLGBYLmNcPG52VoKEYZaMZ6N/WJxfOoC0d9Wvcr+ZVJyBOIFmK29RJ2hTMG5kQnx4VZCBWpx4UJaratOmZsaQTKh9Po1qOn1dN3RbOHVnQ352UY14UJVqQ4pEIGb///8e2goiAAAAT3RSTlMAAAA9o6ioqKioqKioqKioqJMblfhVqP1nkPvyVTfpxBIm4bYHHtqsBBfSoAERyZULwIkHtn4Dq3IBoGaV/luI/U4/r9Xq9vz++/PlzZsgDYzQDAAAAAFiS0dE9tzbSmEAAAAHdElNRQfmAwsPBQDqQxyWAAAAAW9yTlQBz6J3mgAAARtJREFUGNMBEAHv/gADBAUGBwgJCgsMDQ4PEBESABNPUFFSU1RVVldYWVBaFBUAFltcXV5fYGFiY1hkZWYXGAAZGmdoaWprbG1ub3BxchscAB0ec3R1dnd4eXp7fH1+HyAAISJ/gIGCg4SFhoeIiYojJAAlJouMjY6PkJGSk5SVlicoACkql5iZmpucnZ6foKGiKywALS6jpKWmp6ipqqusra4vAAAwMa+wsbKztLW2t7i5ujIBADM0u7y9vr/AwcLDxMXGNQEANjfHyMnKy8zNzs/Q0dI4AQA5OtPU1dbX2Nna29zd3jsBAAI83+Dh4uPk5ebn6Ok9PgEAAT/q6+zt7u/w8fLz9EBBAQABQkNERUZH9UhJSktMTU4B/BB2aOAMOKoAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjItMDMtMTFUMTU6MDQ6NTkrMDA6MDD858qhAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDIyLTAzLTExVDE1OjA0OjU5KzAwOjAwjbpyHQAAAABJRU5ErkJggg=="
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 18.93,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a9",
+            "text": "12",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/kEkDotSLh8QQQ95DK7c9Z5W4.png",
+                "original_url": "https://images.aytm.com/kEkDotSLh8QQQ95DK7c9Z5W4.png",
+                "width": 963,
+                "height": 1538,
+                "trimmed_image": {
+                    "width": 905,
+                    "height": 1511
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAQCAMAAAAYoR5yAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAB41BMVEUSEhIWFhYdHR0iIiIjIyMhISEeHh4aGhsWFhYSEhIRERISEhNpOxBcMQ+hUhOPRhORQCWGOyKoSB6DMRmmRiGNOhSnTC6UPRC8YTp/Lw63XTh2LQ3CZzWBNw7PeD2MPhDJcTmCOBHDZyF+ORK5aBaTTg67axWsTgqnRAemQwejQgeeQAeXPQeROweKOgeIQAkXFhcdHR0iISEjIiIhICAgHh4cGxsXFhZwOg12Pw9+TB1/Th93QBFxOAxrNAxjMAypUg+vVA6zVxCwXRyqXyWgTROfTBGZSRGnSSGtUCjEbT2wYUGjaVuUSjOpTSKiSiGpQhuoVTrDm4e4iniofW+baVqZRSWWORaxSB6zVTG2dFq3eF+xeWOrc1mhWDaROBG6Vi+7VCu9UCG8SxeiPRWhPxWfQBWVOxHGZTvLZDXDYTK2hm+sjICTUTiIMA6HMg/BYTfOZzXLbTuwgmyjh36QTjODLw6FNA7LbDrScDzRcEC6VyqlSiKnUCOUQRqKOg/Xf0XVd0HYfkvDbUS3Zj6yYzefSxqVQhDVeT/UbzjSaC3GYii4WySuUx6aQxKMPhHOcC/RbjTDWiG/WBi+WxeyUhaaRRaHPhWwUhCwTxWrShKrShCiRhCbQg6UQA2OQAz////j2mNkAAAAMHRSTlNwxdDV19fW0ceBobiasa7FtMq0yrTKs8qzyrPJs8mzybLJs8mxyl2/2+ft7ejcxG8nHgRlAAAAAWJLR0SgXtO+oAAAAAd0SU1FB+YDCw8DNnOjLokAAAABb3JOVAHPoneaAAAAu0lEQVQI1wGwAE//AAABAgMEBQYHCAkACjAxMjM0NTY3CwAMODk6Ozw9Pj8NAA5AQUJDREVGRw8AEEhJSktMTU5PEQASUFFSU1RVVlcTABRYWVpbXF1eXxUAFmBhYmNkZWZnFwAYaGlqa2xtbm8ZABpwcXJzdHV2dxsAHHh5ent8fX5/HQAegIGCg4SFhocfACCIiYqLjI2OjyEAIpCRkpOUlZaXIwAkmJmam5ydnp8lACYnKCkqKywtLi//kzGxF94kVAAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMi0wMy0xMVQxNTowMzo1NCswMDowMH/ssBgAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjItMDMtMTFUMTU6MDM6NTQrMDA6MDAOsQikAAAAAElFTkSuQmCC"
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 11.98,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a10",
+            "text": "13",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/e1CsWkBZZz2wC0OXzqE3BiM7.png",
+                "original_url": "https://images.aytm.com/e1CsWkBZZz2wC0OXzqE3BiM7.png",
+                "width": 109,
+                "height": 330,
+                "trimmed_image": {
+                    "width": 109,
+                    "height": 330
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAQCAMAAADpqkX/AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAA81BMVEXVTlHUR0vcT1PaP0OkXGCnamaqbWmnVVnRpYvdoVjdolvRo4npmUbxoUHxo0fpl0fuunbwunjh39z17+y+vr/ov8HPysvs09Tm09Ty8PDr5+jy8vLr7On29/fT18z17+XV19Hz2r3p5+bu4tzn07/p1cLTjU3HgEXAcj3MilLVj1DNNDmaWE7fnUP3qUH0w3L0v2f3yn3f397J08nj4tyQkZF5fHmtf3+TiYmHfX2+l5nRqavGnZ7jycrf2NjTzcvr6uq+v6PLtZX06d6de0nejEH0sXmia1nLbDHvmlDVxMHFpJvitp7czb7QwbXf0cT////bGTv2AAAAK3RSTlMRv78RFMvMFQqztAt88vJ96On4+Pj5+fn5+vn6+vv6+/v7+/z6+77y+vK+hb2wPAAAAAFiS0dEUONuTLwAAAAHdElNRQfmAwsPBAGEXx1BAAAAAW9yTlQBz6J3mgAAAGhJREFUCNdjYGDUZmJmYGHVYWNn4ODU5eJm4OHV4+NnENA3MBRkEDIyNhFmEDE1MxdlELOwtBJnkLC2sZVkkLKzd5BmkHF0cpZlkHNxdZNnUHD38FRkUPLy9lFmUPH181dlUFPX0NQCANZFDFmfFcavAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDIyLTAzLTExVDE1OjA0OjAxKzAwOjAwh+iKogAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyMi0wMy0xMVQxNTowNDowMSswMDowMPa1Mh4AAAAASUVORK5CYII="
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 6.61,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a11",
+            "text": "14",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/YWkEdDr9G4GoSyrtx8bHUSRB.png",
+                "original_url": "https://images.aytm.com/YWkEdDr9G4GoSyrtx8bHUSRB.png",
+                "width": 604,
+                "height": 1885,
+                "trimmed_image": {
+                    "width": 604,
+                    "height": 1855
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAQCAMAAADpqkX/AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAA81BMVEW8QEDFU1S7Tk/EU1TBRUaPMjKOQkNwLzCLQUKONDV+V1eYVVaHQkKZVFWQZmacPT65TU67U1SlUlS3cnKwXFPfxcblzMysWlt+RUZfLS5+T0+vYGHFU1TdhYbbcHHbfHrj4+Li6ebV2Nfg3NjZqZbY5eCixrmIo52ktLTmybzm3MrNtYTOx63j5eDetJLr18jnyaflzLnw16zqx4vu5+bjwLjJfGa6ek3mv5rft6vPdmXNelu6dD/qvafYpXPKhmHLfTnJnUzl0rnms47hoovWokl8h0mzwLroy8bkr6fVu5qVpZjEzs7Qv8C9rq/Vx8j////p3f3DAAAAHHRSTlMQpuGjDhar2KsVB47djgZv7exw6+v9/bbr8uu0DTRllQAAAAFiS0dEUONuTLwAAAAHdElNRQfmAwsPBBGZ6A0lAAAAAW9yTlQBz6J3mgAAAGhJREFUCNdjYGBkYmZhYGVj5+Bk4OLm4eVj4BeQERRiEJaVkxdhUFBUUlZhUFVT19Bk0NLW0dVj0DcwNDJmMDE1M7dgsLSytrFlsLN3cHRicHZxdXNn8PD08vZhEPX18xdjEJeQlJIGALruDFkPlJqOAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDIyLTAzLTExVDE1OjA0OjE2KzAwOjAwjuW0sgAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyMi0wMy0xMVQxNTowNDoxNiswMDowMP+4DA4AAAAASUVORK5CYII="
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 6.51,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a12",
+            "text": "15",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/YIKup3I5s6EY7B8DqBfHMEmW.png",
+                "original_url": "https://images.aytm.com/YIKup3I5s6EY7B8DqBfHMEmW.png",
+                "width": 599,
+                "height": 1885,
+                "trimmed_image": {
+                    "width": 599,
+                    "height": 1855
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAQCAMAAADpqkX/AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAA81BMVEXYYznfc03TbEjec03daD6jSy2fWD5/QiubVj2iTTCKcFOqgE+ZbjurgE6cgGK1eTTVkkTXlUq7iE3JnWu8gUTt3szBjlOMaEBsTCmKbErCklrjm0j1vX33tGbusm3o6OTk7Ofb39vf39vet5zg6uajybyMqaKfsbHYysPq6tTO0YHHzpTg4d61lojt59Hm3Jfi1K7Qp5WNWkXv7uzd08vLglqtXDWob07Mw766l3+eYjl8UDWWb2CggG2qhWl5UzCPYkijlJCviGbSk2CUVCZuZkW2wb3n1MLOnXytjXmJl4/Ez8/r28nXzcG+tavX0Mf///8dxY9QAAAAG3RSTlMRqOGlDxis2K0WB5Ddjwdz7e1z7u7+uevx67cVCkvDAAAAAWJLR0RQ425MvAAAAAd0SU1FB+YDCw8EFOmC+aoAAAABb3JOVAHPoneaAAAAaElEQVQI12NgYGRiZmFgZWPn4GTg4ubh5WPgF5AWFGIQlpGVE2GQV1BUUmZQUVVT12DQ1NLW0WXQ0zcwNGIwNjE1M2ewsLSytmGwtbN3cGRwcnZxdWNw9/D08mbw8fXzF2UQE5eQlAIAtUAMWYICsa4AAAAldEVYdGRhdGU6Y3JlYXRlADIwMjItMDMtMTFUMTU6MDQ6MjArMDA6MDBjuoZrAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDIyLTAzLTExVDE1OjA0OjIwKzAwOjAwEuc+1wAAAABJRU5ErkJggg=="
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 6.46,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a13",
+            "text": "16",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/5ZBY9T5bPIqqbjIJI7CpyTLL.png",
+                "original_url": "https://images.aytm.com/5ZBY9T5bPIqqbjIJI7CpyTLL.png",
+                "width": 601,
+                "height": 1885,
+                "trimmed_image": {
+                    "width": 601,
+                    "height": 1855
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAQCAMAAADpqkX/AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAA81BMVEWKtk6XwGCPtlqWv2CPvFNpiTxvi0tWbTZth0pqiT5ve1t9lV1rg0p9lVyAjWp1l0iNtFqRtl+Fol6bs3p+nlPa5M/e59KLp2NnektMXTNre1SPqmmWwGC62Y+w1nyx1ITl6uXd6uTU3NjX39qrvZrk6+ikyruJqaCcrq7U17/Z49iOu4uRuJHf5N/Dyoje59qz0KrK2Lfm56apt1Dt7+3q7r/a3nLEzEmYrFTU38Dk6oTc3VybrTmXrWe/z4LQ116wvDGCmjSvv5bH1IafsEVjgxhPdjmywbng5MuotYKTonmVqZrFz8/S2My6vrPR1cv///+wW7/UAAAAHHRSTlMRp+GkDxes2KwWB4/djwdx7e1y7e3+/rjr8uu26j990QAAAAFiS0dEUONuTLwAAAAHdElNRQfmAwsPBB9+UCAiAAAAAW9yTlQBz6J3mgAAAGhJREFUCNdjYGBkYmZhYGVj5+Bk4OLm4eVj4BeQERRiEJaVkxdhUFBUUlZhUFVT19Bk0NLW0dVj0DcwNDJmMDE1M7dgsLSytrFlsLN3cHRicHZxdXNn8PD08vZhEPX18xdjEJeQlJIGALruDFkPlJqOAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDIyLTAzLTExVDE1OjA0OjMxKzAwOjAwCWeNQQAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyMi0wMy0xMVQxNTowNDozMSswMDowMHg6Nf0AAAAASUVORK5CYII="
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 6.48,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a14",
+            "text": "0",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/hvbrkWwHTuPmxbxUw6EbfUqn.png",
+                "original_url": "https://images.aytm.com/hvbrkWwHTuPmxbxUw6EbfUqn.png",
+                "width": 601,
+                "height": 1885,
+                "trimmed_image": {
+                    "width": 601,
+                    "height": 1855
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAQCAMAAADpqkX/AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAA81BMVEW1HW6/M361L3e+M326I3SJFlOKLl9tIEmHLl2JGlWFgYajn6iSjpekn6mYlJqrobDKwNDMwtKzrbrBu8WvmqTq6Ozp5+u4sb2HgYpoYmqFgIi6s7/WzN7r4/Dr4vLo3evq6+zh7OjZ397c4ODVp6fp7eyozsCKrKKarqzEv8Dk4uW2orOjl6bd4OHMo57t4ObmrMfQs8GurayjYl3x7/DBu71uUkx6S0VwaGjExMSbX1ybMSiaRD11cHCCgoKISESsJiGjODSSjYx5enqARUKGFhRqNi+ms6zLzMudf32UZ2SWlJG4xsPa2dy8u77T09X////C0d9CAAAAHHRSTlMRp+GlDxer2K0WB47djwdw7e1z7O3+/rfr8uu3GNQiJQAAAAFiS0dEUONuTLwAAAAHdElNRQfmAwsPDRLRI+fWAAAAAW9yTlQBz6J3mgAAAGhJREFUCNdjYGBkYmZhYGVj5+Bk4OLm4eVj4BeQERRiEJaVkxdhUFBUUlZhUFVT19Bk0NLW0dVj0DcwNDJmMDE1M7dgsLSytrFlsLN3cHRicHZxdXNn8PD08vZhEPX18xdjEJeQlJIGALruDFkPlJqOAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDIyLTAzLTExVDE1OjEzOjE4KzAwOjAw/YgLVgAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyMi0wMy0xMVQxNToxMzoxOCswMDowMIzVs+oAAAAASUVORK5CYII="
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 6.48,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a15",
+            "text": "9",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/M9w0LlzTsFbeKu8CsnPzQILc.png",
+                "original_url": "https://images.aytm.com/M9w0LlzTsFbeKu8CsnPzQILc.png",
+                "width": 1020,
+                "height": 2196,
+                "trimmed_image": {
+                    "width": 918,
+                    "height": 2114
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAQCAMAAADtX5XCAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAABTVBMVEVJHB9DGRtIHB5XJCZ0NTl+PD9tMDNIHB5rLzJHGh5qLjJSLSR9STx5ZTq5nV56ZzrApGJ6Zjl8aDrBpGN+ajzEp2WDbz/Iq2eIc0LLrmmNeEXPsWuUfknVt2+bg0zcvXOXgErbvHOMdkSQekadhk2xl1nBpWLKrWnRs21BGBpCGBpRICNwMzZ6OTxBFxpCFxpQHiJwMjZ6OD1QLiJYNSZqQzCKWkSRXEl0YTdXTTJVTjqNfVXJrGh0YjdJQjA/PjdyZ0m/pGJ2Yzh7ZzuPeUeli1O+omFxXTVyXDaIb0OWeky0l1xuWjR1XzieglC4m156ZzqCbD6SeUitklfCpmN6aDt9az+SfUuhi1a8oWKAbD2Cb0GZg06rk1nBpWSGckCOekigilO4nl7Iq2ePeUWWgEqoj1S/omHPsWuWf0mhiU+0mlvHqmbUtm7////kJ5xDAAAAKXRSTlNHkKu1q49Ds624srixubC5sbi4sbixuLG4sreyt7K3srSvT6jIzsiqTQQXn0sAAAABYktHRG4iD1EXAAAAB3RJTUUH5gMLDw0i9/rXegAAAAFvck5UAc+id5oAAACESURBVAjXBcHTAgIBAATAza7Ltm3bXbZt/v9rMwCFSqMzmGC5PV6fnw1OIBgKR7jgRWPxRJIPQSqdyeaEEOULxVKZgLhSrdUbBCTNFtnuSCHr9sj+QA7FcDSeTJVQzeaL5UoNzXqz3e210B2Op/NFD8P1dn88jTC93p/vzwyL1WZ3OF1/8CcXxW8ierwAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjItMDMtMTFUMTU6MTM6MzMrMDA6MDC9qljRAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDIyLTAzLTExVDE1OjEzOjMzKzAwOjAwzPfgbQAAAABJRU5ErkJggg=="
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 8.68,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a16",
+            "text": "10",
+            "type": "sh",
+            "fixedPosition": false,
+            "image": {
+                "original_path": "images.aytm.com/QGA7amdtilJiXjeRVyVReNdi.png",
+                "original_url": "https://images.aytm.com/QGA7amdtilJiXjeRVyVReNdi.png",
+                "width": 600,
+                "height": 1885,
+                "trimmed_image": {
+                    "width": 600,
+                    "height": 1855
+                },
+                "product": {
+                    "image_type": "main",
+                    "height": 0,
+                    "offset_y": 0
+                },
+                "thumbnail16x16": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAQCAMAAADpqkX/AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAA81BMVEU4qXZLtIVGqn5Ls4U9rnsrf1s+g2MuZko9f2Etf1yEhFSfoFCPjzygoU6TkmGjpjbBxUbDx0ysr028vm2tsE/m6MqytVSCg0FjZCmCg0u0t1vN0krk537j52je4m3o6+Xo7+re4t7i5tzKzLDf6eajyb2OqqSisrLK0MPm6NXCy4W+yJXZ3t2yuZrj58/T2ZHT1K2/w62eoGnu8Ozq5L64qFmBgUW6rWni3s3byHazpUWOikW9snu/tYOloG9XZiNzeT3DwaCclV6imVpYYytWakrAysLMyrSqqX2Pl3d/lovDzc3k5sfS07+8vKrQ0cP////ENPwRAAAAG3RSTlMSqOGkDxis2KwVB5Ddjgdy7e1y7u3+uevy67ZPp3MVAAAAAWJLR0RQ425MvAAAAAd0SU1FB+YDCw8NJWmeQtkAAAABb3JOVAHPoneaAAAAaElEQVQI12NgYGRiZmFgZWPn4GTg4ubh5WPgF5AWFGIQlpGVE2GQV1BUUmZQUVVT12DQ1NLW0WXQ0zcwNGIwNjE1M2ewsLSytmGwtbN3cGRwcnZxdWNw9/D08mbw8fXzF2UQE5eQlAIAtUAMWYICsa4AAAAldEVYdGRhdGU6Y3JlYXRlADIwMjItMDMtMTFUMTU6MTM6MzcrMDA6MDBJ5XzCAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDIyLTAzLTExVDE1OjEzOjM3KzAwOjAwOLjEfgAAAABJRU5ErkJggg=="
+            },
+            "description": "",
+            "price": 10,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": -20,
+            "main_image_offset_y": 0,
+            "width": 6.47,
+            "height": 20,
+            "offset_y": 0
+        },
+        {
+            "id": "q1a17",
+            "text": "None of the above",
+            "type": "sh",
+            "fixedPosition": true,
+            "na": true,
+            "description": "",
+            "price": 0,
+            "discounted_price": 0,
+            "shelf_fill": "auto",
+            "main_image_height": 0,
+            "main_image_offset_y": 0
+        }
+    ],
+    "shelf_config": {
+        "width": 80,
+        "height": 20,
+        "minHeight": 4,
+        "minStoreHeight": 12,
+        "expand": "smooth",
+        "pegboardEnabled": true,
+        "unit": {
+            "label": "\"",
+            "coef": 1
+        },
+        "amount": {
+            "min": 2,
+            "max": 8
+        },
+        "front": {
+            "walls": 7,
+            "air": 3.5,
+            "pegAir": 5,
+            "bottom": 17,
+            "top": 55,
+            "alignWalls": 3
+        }
+    },
+    "time": 35.09343950522177,
+    "position": 1,
+    "status": "request",
+    "shelf_width": 80,
+    "answers_mask": [
+        [
+            [
+                "q1a1",
+                1
+            ],
+            [
+                "q1a2",
+                1
+            ],
+            [
+                "q1a3",
+                1
+            ],
+            [
+                "q1a4",
+                3
+            ],
+            [
+                "q1a5",
+                1
+            ],
+            [
+                "q1a6",
+                1
+            ]
+        ],
+        [
+            [
+                "q1a7",
+                1
+            ],
+            [
+                "q1a8",
+                1
+            ],
+            [
+                "q1a9",
+                1
+            ],
+            [
+                "q1a10",
+                1
+            ],
+            [
+                "q1a11",
+                1
+            ],
+            [
+                "q1a12",
+                4
+            ]
+        ],
+        [
+            [
+                "q1a13",
+                3
+            ],
+            [
+                "q1a14",
+                3
+            ],
+            [
+                "q1a15",
+                2
+            ],
+            [
+                "q1a16",
+                3
+            ]
+        ]
+    ],
+    "coordinates": {
+        "imageWidth": 600,
+        "imageHeight": 626.81875,
+        "coordinates": [
+            [
+                [
+                    23,
+                    81,
+                    60,
+                    148,
+                    "q1a1"
+                ],
+                [
+                    83,
+                    81,
+                    113,
+                    148,
+                    "q1a2"
+                ],
+                [
+                    196,
+                    81,
+                    93,
+                    148,
+                    "q1a3"
+                ],
+                [
+                    289,
+                    81,
+                    48,
+                    148,
+                    "q1a4"
+                ],
+                [
+                    337,
+                    81,
+                    48,
+                    148,
+                    "q1a4"
+                ],
+                [
+                    385,
+                    81,
+                    48,
+                    148,
+                    "q1a4"
+                ],
+                [
+                    433,
+                    81,
+                    96,
+                    148,
+                    "q1a5"
+                ],
+                [
+                    529,
+                    81,
+                    49,
+                    148,
+                    "q1a6"
+                ]
+            ],
+            [
+                [
+                    17,
+                    271,
+                    50,
+                    148,
+                    "q1a7"
+                ],
+                [
+                    67,
+                    271,
+                    140,
+                    148,
+                    "q1a8"
+                ],
+                [
+                    207,
+                    271,
+                    89,
+                    148,
+                    "q1a9"
+                ],
+                [
+                    295,
+                    271,
+                    49,
+                    148,
+                    "q1a10"
+                ],
+                [
+                    344,
+                    271,
+                    48,
+                    148,
+                    "q1a11"
+                ],
+                [
+                    392,
+                    271,
+                    48,
+                    148,
+                    "q1a12"
+                ],
+                [
+                    440,
+                    271,
+                    48,
+                    148,
+                    "q1a12"
+                ],
+                [
+                    488,
+                    271,
+                    48,
+                    148,
+                    "q1a12"
+                ],
+                [
+                    535,
+                    271,
+                    48,
+                    148,
+                    "q1a12"
+                ]
+            ],
+            [
+                [
+                    21,
+                    462,
+                    48,
+                    148,
+                    "q1a13"
+                ],
+                [
+                    69,
+                    462,
+                    48,
+                    148,
+                    "q1a13"
+                ],
+                [
+                    117,
+                    462,
+                    48,
+                    148,
+                    "q1a13"
+                ],
+                [
+                    165,
+                    462,
+                    48,
+                    148,
+                    "q1a14"
+                ],
+                [
+                    212,
+                    462,
+                    48,
+                    148,
+                    "q1a14"
+                ],
+                [
+                    260,
+                    462,
+                    48,
+                    148,
+                    "q1a14"
+                ],
+                [
+                    308,
+                    462,
+                    64,
+                    148,
+                    "q1a15"
+                ],
+                [
+                    372,
+                    462,
+                    64,
+                    148,
+                    "q1a15"
+                ],
+                [
+                    436,
+                    462,
+                    48,
+                    148,
+                    "q1a16"
+                ],
+                [
+                    484,
+                    462,
+                    48,
+                    148,
+                    "q1a16"
+                ],
+                [
+                    532,
+                    462,
+                    48,
+                    148,
+                    "q1a16"
+                ]
+            ]
+        ],
+        "counts": [
+            [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+            ],
+            [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+            ],
+            [
+                1,
+                1,
+                1,
+                1
+            ]
+        ],
+        "widthFactor": 7.3875
+    }
+}
