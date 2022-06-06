@@ -13,8 +13,8 @@ class PlaneInstructionWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Text(
-              'Point your camera at the wall, then move around to detect vertical planes, then tap on detected plane'),
-          Image.asset('assets/sceneform_hand_phone.png'),
+              'To display the shelf point your phone camera at an unobstructed wall. Pan your phone to detect vertical planes. Tap on the planes to display the shelf. Tap Ok to start',
+              textAlign: TextAlign.center),
           TextButton(onPressed: callback, child: const Text('Ok'))
         ],
       ));
