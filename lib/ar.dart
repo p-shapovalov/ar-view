@@ -61,6 +61,22 @@ class _ArViewState extends State<ArView> with WidgetsBindingObserver {
   bool instruction = true;
 
   @override
+  void initState() {
+    WidgetsBinding.instance?.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed ||
+        state == AppLifecycleState.paused) {
+      setState(() => instruction = true);
+    }
+
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (instruction) {
       return PlaneInstructionWidget(
