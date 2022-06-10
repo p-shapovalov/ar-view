@@ -45,6 +45,7 @@ class TransformArView extends StatelessWidget {
       ArView(
         width: screenSize.width,
         height: screenSize.height,
+        controller: controller,
         onArViewCreated: (_) {},
         onFrame: (f) => _onFrame(context, f),
         onPlaneTap: (p) => _onPlaneTap(context, p),

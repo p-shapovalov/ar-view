@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:ar/model.dart';
 import 'package:ar/plane_instruction_widget.dart';
+import 'package:ar/transform_ar_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -43,10 +44,12 @@ class ArView extends StatefulWidget {
       required this.onArViewCreated,
       required this.onPlaneTap,
       required this.onFrame,
+      required this.controller,
       this.width = 300,
       this.height = 300})
       : super(key: key);
 
+  final TransformArViewController controller;
   final double width;
   final double height;
   final ArViewCreatedCallback onArViewCreated;
@@ -70,7 +73,10 @@ class _ArViewState extends State<ArView> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed ||
         state == AppLifecycleState.paused) {
-      setState(() => instruction = true);
+      setState(() {
+        instruction = true;
+        widget.controller.reset();
+      });
     }
 
     super.didChangeAppLifecycleState(state);
