@@ -71,8 +71,7 @@ class _ArViewState extends State<ArView> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed ||
-        state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.resumed) {
       setState(() {
         instruction = true;
         widget.controller.reset();
