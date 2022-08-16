@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:ar/model.dart';
-import 'package:ar/plane_instruction_widget.dart';
 import 'package:ar/transform_ar_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -61,8 +60,6 @@ class ArView extends StatefulWidget {
 }
 
 class _ArViewState extends State<ArView> with WidgetsBindingObserver {
-  bool instruction = true;
-
   @override
   void initState() {
     WidgetsBinding.instance?.addObserver(this);
@@ -73,7 +70,6 @@ class _ArViewState extends State<ArView> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       setState(() {
-        instruction = true;
         widget.controller.reset();
       });
     }
@@ -83,11 +79,6 @@ class _ArViewState extends State<ArView> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    if (instruction) {
-      return PlaneInstructionWidget(
-          callback: () => setState(() => instruction = false));
-    }
-
     if (defaultTargetPlatform == TargetPlatform.android) {
       return SizedBox(
           width: widget.width,
