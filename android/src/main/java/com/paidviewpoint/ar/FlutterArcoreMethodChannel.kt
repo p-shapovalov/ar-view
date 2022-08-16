@@ -34,7 +34,7 @@ abstract class FlutterArcoreMethodChannel(messenger: BinaryMessenger?, id: Int) 
 
 //    abstract fun addImage(image: FlutterArCoreImage)
 
-    fun onFrame(projectionMatrix: FloatArray, viewMatrix: FloatArray) {
+    fun onFrame(projectionMatrix: FloatArray, viewMatrix: FloatArray, hasPlanes: Boolean) {
 //        val modelMatrix = FloatArray(16)
 //        Matrix.setRotateEulerM(modelMatrix, 0, 0f, 0f, 0f)
 //
@@ -45,7 +45,8 @@ abstract class FlutterArcoreMethodChannel(messenger: BinaryMessenger?, id: Int) 
 
         val frameResult = HashMap<String, Any>()
         frameResult["projectionMatrix"] = projectionMatrix // Type plane
-        frameResult["viewMatrix"] = viewMatrix // Type plane
+        frameResult["viewMatrix"] = viewMatrix // Type p
+        frameResult["hasPlanes"] = hasPlanes// lane
 
         methodChannel.invokeMethod("onFrame", frameResult)
     }

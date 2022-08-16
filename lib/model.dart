@@ -4,13 +4,15 @@ Matrix4 _matrixFromJson(dynamic json) =>
     Matrix4.fromList((json as List).cast<double>());
 
 class ARFrameResult {
-  ARFrameResult({required this.projectionMatrix, required this.viewMatrix});
+  ARFrameResult({required this.projectionMatrix, required this.viewMatrix, required this.hasPlanes});
 
   final Matrix4 projectionMatrix;
   final Matrix4 viewMatrix;
+  final bool hasPlanes;
 
   static ARFrameResult fromJson(dynamic json) => ARFrameResult(
       projectionMatrix: _matrixFromJson(json['projectionMatrix']),
+      hasPlanes: json['hasPlanes'] ?? false,
       viewMatrix: _matrixFromJson(json['viewMatrix']));
 }
 

@@ -161,18 +161,18 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger?, id: Int) 
             val viewMatrix = FloatArray(16)
             camera.getViewMatrix(viewMatrix, 0)
 
-            activity.runOnUiThread { onFrame(projectionMatrix, viewMatrix) }
 
             if (anchor != null) return
             handleTap(frame, camera)
 
             // If not tracking, don't draw 3d objects.
             if (camera.trackingState != TrackingState.TRACKING) return
-
-            planeRenderer.drawPlanes(
-                session!!.getAllTrackables(Plane::class.java)
+            val planes = session!!.getAllTrackables(Plane::class.java)
                     .filter { it.type == Plane.Type.VERTICAL }
-                ,
+
+            activity.runOnUiThread { onFrame(projectionMatrix, viewMatrix, planes.isNotEmpty()) }
+
+            planeRenderer.drawPlanes(planes,
                 camera.displayOrientedPose,
                 projectionMatrix
             )
