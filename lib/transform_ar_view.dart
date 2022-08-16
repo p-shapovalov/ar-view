@@ -10,6 +10,7 @@ final _openGlToFlutterRotation =
 class TransformArViewController {
   final double pixelsPerMeter;
   final Size size;
+  final ValueNotifier<bool> planeDetected;
   final ValueNotifier<Matrix4?> transform;
   final GlobalKey transformKey;
   final Matrix4 Function(Matrix4 plane)? mapPlane;
@@ -25,6 +26,7 @@ class TransformArViewController {
   TransformArViewController(
       {required this.pixelsPerMeter,
       required this.size,
+      required this.planeDetected,
       required this.transform,
       required this.transformKey,
       this.mapPlane});
@@ -76,6 +78,8 @@ class TransformArView extends StatelessWidget {
 
       controller.transform.value = _getFinalTransform(context, plane, frame);
     }
+
+    controller.planeDetected.value = frame.hasPlanes;
   }
 
   Matrix4 _putOnSurface(Matrix4 plane, Matrix4 finalTransform) {
