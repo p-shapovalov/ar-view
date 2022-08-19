@@ -28,7 +28,6 @@ class DemoPageState extends State<DemoPage> {
             pixelsPerMeter: 600,
             size: const Size(300, 300),
             transformKey: GlobalKey(),
-            planeDetected: ValueNotifier(false),
             transform: ValueNotifier<Matrix4?>(null),
           ),
           child: Container(

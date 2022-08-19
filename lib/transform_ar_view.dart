@@ -10,7 +10,7 @@ final _openGlToFlutterRotation =
 class TransformArViewController {
   final double pixelsPerMeter;
   final Size size;
-  final ValueNotifier<bool> planeDetected;
+  final ValueNotifier<bool> planeDetected = ValueNotifier(false);
   final ValueNotifier<Matrix4?> transform;
   final GlobalKey transformKey;
   final Matrix4 Function(Matrix4 plane)? mapPlane;
@@ -26,7 +26,6 @@ class TransformArViewController {
   TransformArViewController(
       {required this.pixelsPerMeter,
       required this.size,
-      required this.planeDetected,
       required this.transform,
       required this.transformKey,
       this.mapPlane});
