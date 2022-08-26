@@ -8,14 +8,14 @@ environment:
   flutter: ">=2.5.0 <3.0.0"
 
 dependencies:
-  permission_handler: ^8.3.0
+  permission_handler: ^10.0.0
   flutter:
     sdk: flutter
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^1.0.0
+  flutter_lints: ^2.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
