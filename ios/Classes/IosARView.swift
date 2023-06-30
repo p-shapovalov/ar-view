@@ -87,7 +87,7 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, UIGestureReco
             self.sceneView.gestureRecognizers?.removeAll()
             
         } else  {
-            configuration.planeDetection = [.vertical]
+            configuration.planeDetection = [.horizontal]
 
         
             // Set plane rendering options
