@@ -56,13 +56,13 @@ class ArView extends StatefulWidget {
   final ArFrameCallback onFrame;
 
   @override
-  _ArViewState createState() => _ArViewState();
+  ArViewState createState() => ArViewState();
 }
 
-class _ArViewState extends State<ArView> with WidgetsBindingObserver {
+class ArViewState extends State<ArView> with WidgetsBindingObserver {
   @override
   void initState() {
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
 
@@ -113,7 +113,7 @@ class _ArViewState extends State<ArView> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 }
