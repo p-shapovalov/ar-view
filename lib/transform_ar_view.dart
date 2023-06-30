@@ -13,7 +13,7 @@ class TransformArViewController {
   final ValueNotifier<bool> planeDetected = ValueNotifier(false);
   final ValueNotifier<Matrix4?> transform;
   final GlobalKey transformKey;
-  final Matrix4 Function(Matrix4 plane)? mapPlane;
+  final Matrix4 Function(Matrix4 plane, Matrix4 finalTransform)? mapPlane;
 
   Matrix4? planeMatrix;
   Matrix4? planeMatrixOnSurface;
@@ -73,8 +73,10 @@ class TransformArView extends StatelessWidget {
           _putOnSurface(plane, _getFinalTransform(context, plane, frame));
 
       plane = controller.planeMatrixOnSurface!;
-      if (controller.mapPlane != null) plane = controller.mapPlane!(plane);
-
+      if (controller.mapPlane != null) {
+        plane = controller.mapPlane!(
+            plane, _getFinalTransform(context, plane, frame));
+      }
       controller.transform.value = _getFinalTransform(context, plane, frame);
     }
 
