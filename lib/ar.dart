@@ -39,14 +39,13 @@ typedef ArFrameCallback = void Function(ARFrameResult controller);
 
 class ArView extends StatefulWidget {
   const ArView(
-      {Key? key,
+      {super.key,
       required this.onArViewCreated,
       required this.onPlaneTap,
       required this.onFrame,
       required this.controller,
       this.width = 300,
-      this.height = 300})
-      : super(key: key);
+      this.height = 300});
 
   final TransformArViewController controller;
   final double width;
