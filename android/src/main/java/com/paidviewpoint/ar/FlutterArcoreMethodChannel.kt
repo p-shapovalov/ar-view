@@ -17,7 +17,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 //    val transformation: FloatArray = (map["transformation"] as DoubleArray).map { it.toFloat() }.toFloatArray()
 //}
 
-abstract class FlutterArcoreMethodChannel(messenger: BinaryMessenger?, id: Int) : MethodCallHandler {
+abstract class FlutterArcoreMethodChannel(messenger: BinaryMessenger, id: Int) : MethodCallHandler {
     private val methodChannel: MethodChannel =
         MethodChannel(messenger, "ar_$id")
 
