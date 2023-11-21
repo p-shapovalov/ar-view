@@ -24,7 +24,7 @@ import java.io.IOException
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class FlutterArcoreView(context: Context, messenger: BinaryMessenger?, id: Int) : PlatformView,
+class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) : PlatformView,
     FlutterArcoreMethodChannel(messenger, id), GLSurfaceView.Renderer {
     private val backgroundRenderer = BackgroundRenderer()
     private val planeRenderer = PlaneRenderer()
