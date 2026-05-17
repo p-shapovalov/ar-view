@@ -17,7 +17,7 @@ class TransformArViewController {
 
   Matrix4? planeMatrix;
   Matrix4? planeMatrixOnSurface;
-  reset() {
+  void reset() {
     transform.value = null;
     planeMatrix = null;
     planeMatrixOnSurface = null;
@@ -36,8 +36,7 @@ class TransformArView extends StatelessWidget {
   final TransformArViewController controller;
 
   const TransformArView(
-      {Key? key, required this.child, required this.controller})
-      : super(key: key);
+      {super.key, required this.child, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -63,10 +62,10 @@ class TransformArView extends StatelessWidget {
     ]);
   }
 
-  _onPlaneTap(BuildContext context, ARHitResult hit) =>
+  void _onPlaneTap(BuildContext context, ARHitResult hit) =>
       controller.planeMatrix = hit.hitMatrix;
 
-  _onFrame(BuildContext context, ARFrameResult frame) async {
+  Future _onFrame(BuildContext context, ARFrameResult frame) async {
     var plane = controller.planeMatrix;
     if (plane != null) {
       controller.planeMatrixOnSurface ??=

@@ -31,7 +31,7 @@ class DemoPageState extends State<DemoPage> {
             transform: ValueNotifier<Matrix4?>(null),
           ),
           child: Container(
-            color: Colors.grey.withOpacity(0.5),
+            color: Colors.grey.withAlpha(128),
             child: const Align(
               alignment: Alignment.center,
               child: Text('AR View'),
