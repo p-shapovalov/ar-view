@@ -10,6 +10,8 @@ import 'package:permission_handler/permission_handler.dart';
 
 export 'package:ar/model.dart';
 export 'package:ar/transform_ar_view.dart';
+export 'package:ar/transform_3d_view.dart';
+export 'package:flutter_scene/scene.dart' show Camera, Node, Scene;
 
 ValueNotifier<String?> lastError = ValueNotifier(null);
 

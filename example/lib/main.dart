@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:ar/ar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,34 +7,95 @@ Future<void> main() async {
   await checkArAvailability();
   await SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitDown, DeviceOrientation.portraitUp]);
-  runApp(const MaterialApp(home: DemoPage()));
+  runApp(const MaterialApp(home: MainPage()));
 }
 
-class DemoPage extends StatefulWidget {
-  const DemoPage({Key? key}) : super(key: key);
+class MainPage extends StatelessWidget {
+  const MainPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => DemoPageState();
-}
-
-class DemoPageState extends State<DemoPage> {
-  @override
-  Widget build(BuildContext context) => SafeArea(
-          child: Stack(children: [
-        TransformArView(
-          controller: TransformArViewController(
-            pixelsPerMeter: 600,
-            size: const Size(300, 300),
-            transformKey: GlobalKey(),
-            transform: ValueNotifier<Matrix4?>(null),
-          ),
-          child: Container(
-            color: Colors.grey.withAlpha(128),
-            child: const Align(
-              alignment: Alignment.center,
-              child: Text('AR View'),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ArPage()),
+              ),
+              child: const Text('AR'),
             ),
-          ),
-        )
-      ]));
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ThreeDPage()),
+              ),
+              child: const Text('3D'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ArPage extends StatefulWidget {
+  const ArPage({super.key});
+
+  @override
+  State<ArPage> createState() => _ArPageState();
+}
+
+class _ArPageState extends State<ArPage> {
+  final _controller = TransformArViewController();
+
+  @override
+  void initState() {
+    super.initState();
+    Node.fromGlbAsset('assets/model.glb').then((node) {
+      _controller.modelNode = node;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: TransformArView(controller: _controller),
+    );
+  }
+}
+
+class ThreeDPage extends StatefulWidget {
+  const ThreeDPage({super.key});
+
+  @override
+  State<ThreeDPage> createState() => _ThreeDPageState();
+}
+
+class _ThreeDPageState extends State<ThreeDPage> {
+  final _controller = TransformThreeDViewController();
+
+  @override
+  void initState() {
+    super.initState();
+    Node.fromGlbAsset('assets/model.glb').then((node) {
+      _controller.modelNode = node;
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: TransformThreeDView(controller: _controller),
+    );
+  }
 }
