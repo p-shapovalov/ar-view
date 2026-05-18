@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -46,6 +45,7 @@ import io.github.sceneview.math.Position
 import io.github.sceneview.math.Scale
 import io.github.sceneview.model.model
 import io.github.sceneview.node.ModelNode
+import io.github.sceneview.rememberARView
 import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberMaterialLoader
 import io.github.sceneview.rememberModelLoader
@@ -130,6 +130,9 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
             val engine = rememberEngine()
             val modelLoader = rememberModelLoader(engine)
             val materialLoader = rememberMaterialLoader(engine)
+            // Hoisted so the tap handler can drive `view.pickNode` directly
+            // (see Flutter3DView for the rationale).
+            val view = rememberARView(engine)
             // Share one Scene with both ARSceneView and our PlaneRenderer
             // so the renderer's plane visualizers show up in the same
             // scene ARSceneView renders.
@@ -148,22 +151,21 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
                 onDispose { customPlaneRenderer.destroy() }
             }
 
-            // Pre-placement, the existing onTouchEvent handles ACTION_UP→place.
-            // Post-placement, single-tap-confirmed selects nodes on the placed model.
+            // Pre-placement, onTouchEvent handles ACTION_UP→place.
+            // Post-placement, GPU-pick the tapped node and report it.
             val gestureListener = rememberOnGestureListener(
-                onSingleTapConfirmed = { _, node ->
-                    if (placedAnchor != null && node != null) {
-                        val name = firstNamedAncestorName(node, modelNodeRef)
-                        if (name != null) {
-                            Log.d("ar", "AR node tap → $name")
-                            mainHandler.post { onNodeTap(name) }
-                        }
+                onSingleTapConfirmed = { e, _ ->
+                    if (placedAnchor == null) return@rememberOnGestureListener
+                    val mn = modelNodeRef ?: return@rememberOnGestureListener
+                    pickGltfNodeName(view, mn, e, mainHandler) { name ->
+                        if (name != null) onNodeTap(name)
                     }
                 },
             )
 
             ARSceneView(
                 modifier = Modifier.fillMaxSize(),
+                view = view,
                 scene = scene,
                 onGestureListener = gestureListener,
                 // TextureSurface (TextureView under the hood) composites
@@ -252,12 +254,12 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
                     if (event.actionMasked == MotionEvent.ACTION_UP ||
                         event.actionMasked == MotionEvent.ACTION_CANCEL
                     ) isPanning = false
-                    // Consume post-placement events so SceneView's internal
-                    // gesture detector doesn't compete with our pinch/drag.
-                    // Pre-placement we let the dispatcher continue (its
-                    // default no-op camera manipulator doesn't hurt) so the
-                    // ARSceneView's render loop sees the events normally.
-                    anchored
+                    // Let SceneView's dispatcher continue so its
+                    // GestureDetector still fires onSingleTapConfirmed for
+                    // post-placement node-tap detection. Other dispatcher
+                    // consumers are no-ops (no NodeGestureDelegate callbacks
+                    // registered; renderables default to isEditable=false).
+                    false
                 },
             ) {
                 val path = modelPath

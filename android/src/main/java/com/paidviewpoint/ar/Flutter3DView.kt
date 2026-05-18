@@ -3,7 +3,6 @@ package com.paidviewpoint.ar
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.DisposableEffect
@@ -14,9 +13,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.LifecycleOwner
+import dev.romainguy.kotlin.math.Float3
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.platform.PlatformView
 import io.github.sceneview.SceneView
+import io.github.sceneview.SurfaceType
 import io.github.sceneview.gesture.CameraGestureDetector
 import io.github.sceneview.model.model
 import io.github.sceneview.node.ModelNode
@@ -24,6 +25,8 @@ import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberMaterialLoader
 import io.github.sceneview.rememberModelLoader
 import io.github.sceneview.rememberOnGestureListener
+import io.github.sceneview.rememberScene
+import io.github.sceneview.rememberView
 
 /**
  * Non-AR 3D model viewer. Hosts SceneView's `SceneView` composable inside
@@ -47,12 +50,24 @@ class Flutter3DView(context: Context, messenger: BinaryMessenger, id: Int) : Pla
             val engine = rememberEngine()
             val modelLoader = rememberModelLoader(engine)
             val materialLoader = rememberMaterialLoader(engine)
+            // Hoisted so the tap handler can drive `view.pickNode` directly
+            // — SceneView's onSingleTapConfirmed delivers the picked Node
+            // but flattens the glTF parent chain, losing the node names
+            // we want to surface.
+            val scene = rememberScene(engine)
+            val view = rememberView(engine).apply { setScene(scene) }
 
             // Strafe-only manipulator: single-finger drag pans the
             // camera instead of orbiting. Pinch still dollies via the
-            // unchanged scroll* callbacks.
+            // unchanged scroll* callbacks. Explicit orbit home / target —
+            // the no-arg default leaves Filament's eye at (0, 0, 1) which
+            // sits *inside* a model sized to FIT_METERS = 1.5, making
+            // tap-rays originate from inside the geometry.
             val panZoomManipulator = remember {
-                object : CameraGestureDetector.DefaultCameraManipulator() {
+                object : CameraGestureDetector.DefaultCameraManipulator(
+                    Float3(0f, 0f, 3f),
+                    Float3(0f, 0f, 0f),
+                ) {
                     override fun grabBegin(x: Int, y: Int, strafe: Boolean) {
                         super.grabBegin(x, y, /* strafe = */ true)
                     }
@@ -60,11 +75,10 @@ class Flutter3DView(context: Context, messenger: BinaryMessenger, id: Int) : Pla
             }
 
             val gestureListener = rememberOnGestureListener(
-                onSingleTapConfirmed = { _, node ->
-                    val name = node?.let { firstNamedAncestorName(it, modelNodeRef) }
-                    if (name != null) {
-                        Log.d("ar", "3D node tap → $name")
-                        mainHandler.post { onNodeTap(name) }
+                onSingleTapConfirmed = { e, _ ->
+                    val mn = modelNodeRef ?: return@rememberOnGestureListener
+                    pickGltfNodeName(view, mn, e, mainHandler) { name ->
+                        if (name != null) onNodeTap(name)
                     }
                 },
             )
@@ -74,14 +88,16 @@ class Flutter3DView(context: Context, messenger: BinaryMessenger, id: Int) : Pla
                 engine = engine,
                 modelLoader = modelLoader,
                 materialLoader = materialLoader,
+                view = view,
+                scene = scene,
                 cameraManipulator = panZoomManipulator,
                 onGestureListener = gestureListener,
-                // autoFitContent moves the camera to fit each model's
-                // native size, which leaves the Manipulator's hardcoded
-                // speeds (`zoomSpeed=0.05` etc.) too slow for big models
-                // and too jumpy for tiny ones. We normalise the model
-                // size instead, below.
-                autoCenterContent = true,
+                surfaceType = SurfaceType.TextureSurface,
+                // autoCenterContent shifts the rendered model away from
+                // its authored origin while leaving collision shapes
+                // where they were (SceneView #1430, #1421). Keeping it
+                // off makes ray-vs-AABB picking match what's on screen.
+                autoCenterContent = false,
             ) {
                 val path = modelPath
                 if (path != null) {
@@ -143,10 +159,9 @@ class Flutter3DView(context: Context, messenger: BinaryMessenger, id: Int) : Pla
     override fun onListNodes(): List<String> = listNodeNames(modelNodeRef)
 
     private companion object {
-        // Largest-extent target for normalising loaded models. Matches the
-        // AR fit so both view types feel sized the same; sits comfortably
-        // inside the SceneView default camera's framing (camera at z=2.75
-        // looking at origin).
+        // Largest-extent target for normalising loaded models. Sits
+        // comfortably inside the manipulator's orbit-home framing
+        // (camera at z=3, target at origin).
         const val FIT_METERS = 1.5f
     }
 }
