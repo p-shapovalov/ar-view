@@ -1,13 +1,18 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
-import 'package:flutter_scene/scene.dart' show Node, PerspectiveCamera, Scene;
+import 'package:flutter_scene/scene.dart' show Camera, Node, PerspectiveCamera, Scene;
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:vector_math/vector_math_64.dart' as vm64;
 import 'package:ar/matrix_gesture_detector.dart';
 
-// Camera parameters — match the spirit of the original fixed setup.
-// Original: view from (0,0,-1) with fov=60° and aspect=-1. We keep fov=60°
-// but use a more natural z=-5 so the model sits comfortably in view.
+// flutter_scene's PerspectiveCamera uses a left-handed lookAt
+// (right = up × forward) and a +1 in proj[3,2], which mirrors X
+// relative to ARCore's right-handed projection*view. _ThreeDCamera
+// inherits PerspectiveCamera's configuration (position/target/up/fov)
+// but overrides the matrix math to use vector_math's RH OpenGL helpers,
+// keeping the 3D and AR views in the same convention.
 const double _kCameraZ = 5.0;
 const double _kFovY = math.pi / 3; // 60°
 
@@ -23,12 +28,36 @@ double getScale(Matrix4 m) => math.sqrt(
     m.storage[1] * m.storage[1] +
     m.storage[2] * m.storage[2]);
 
+/// PerspectiveCamera with a right-handed `projection·view` built from
+/// vector_math's OpenGL helpers — same convention as ARCore. Configured
+/// with eye = (0, 0, +_kCameraZ) looking toward −Z, +Y up; glTF-standard
+/// models (+Y up, facing +Z) then face the camera with no extra rotation.
+class _ThreeDCamera extends PerspectiveCamera {
+  _ThreeDCamera()
+      : super(
+          position: vm.Vector3(0, 0, _kCameraZ),
+          target: vm.Vector3.zero(),
+          up: vm.Vector3(0, 1, 0),
+          fovRadiansY: _kFovY,
+        );
+
+  @override
+  vm.Matrix4 getViewTransform(ui.Size dimensions) {
+    final proj = vm.makePerspectiveMatrix(
+        fovRadiansY, dimensions.width / dimensions.height, fovNear, fovFar);
+    final view = vm.makeViewMatrix(position, target, up);
+    return proj * view;
+  }
+}
+
 class _ThreeDScenePainter extends CustomPainter {
   final Scene scene;
+  final Camera camera;
   final ValueNotifier<Size?> viewportSize;
 
   _ThreeDScenePainter({
     required this.scene,
+    required this.camera,
     required this.viewportSize,
     required Listenable repaint,
   }) : super(repaint: repaint);
@@ -36,15 +65,7 @@ class _ThreeDScenePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     viewportSize.value = size;
-    scene.render(
-      PerspectiveCamera(
-        position: vm.Vector3(0, 0, -_kCameraZ),
-        target: vm.Vector3.zero(),
-        fovRadiansY: _kFovY,
-      ),
-      canvas,
-      viewport: Offset.zero & size,
-    );
+    scene.render(camera, canvas, viewport: Offset.zero & size);
   }
 
   @override
@@ -56,6 +77,7 @@ class TransformThreeDViewController {
   final ValueNotifier<Size?> _viewportSize = ValueNotifier(null);
 
   final Scene scene = Scene();
+  final Camera _camera = _ThreeDCamera();
 
   Node? _modelNode; // user-supplied node (inner, holds auto-fit transform)
   Node? _modelWrapper; // scene-attached wrapper that gestures drive
@@ -137,18 +159,19 @@ class TransformThreeDViewController {
     final tx = m.storage[12]; // pixel translation X
     final ty = m.storage[13]; // pixel translation Y
     final scale = getScale(m);
-    // Screen Z rotation maps to world Y rotation (model spin) for a front-facing camera.
     final rotY = math.atan2(m.storage[1], m.storage[0]);
 
-    // Pixels per world unit at z=0 with camera at z=-_kCameraZ, fovY=_kFovY:
-    //   visible half-height = _kCameraZ * tan(_kFovY / 2)  [world units]
-    //   visible half-height = size.height / 2              [pixels]
+    // Pixels per world unit at z=0: camera is at +_kCameraZ, plane at z=0.
+    //   visible half-height = _kCameraZ * tan(_kFovY / 2) [world units]
+    //                       = size.height / 2             [pixels]
     final ppu = size.height / 2 / (_kCameraZ * math.tan(_kFovY / 2));
 
+    // Flutter Y-down → world Y-up. X aligns directly with the RH camera's
+    // right vector (+X world), so no X flip is needed.
     final worldTransform = vm64.Matrix4.identity()
-      ..translateByDouble(tx / ppu, -ty / ppu, 0.0, 1.0) // flip Y: Flutter Y-down → world Y-up
+      ..translateByDouble(tx / ppu, -ty / ppu, 0.0, 1.0)
       ..scaleByDouble(scale, scale, scale, 1.0)
-      ..rotateY(rotY + math.pi); // +π: model front faces camera (camera looks in +Z, model designed for -Z)
+      ..rotateY(rotY);
 
     wrapper.globalTransform = _m64ToVm(worldTransform);
   }
@@ -176,6 +199,7 @@ class TransformThreeDView extends StatelessWidget {
         child: CustomPaint(
           painter: _ThreeDScenePainter(
             scene: controller.scene,
+            camera: controller._camera,
             viewportSize: controller._viewportSize,
             repaint: controller._repaint,
           ),
