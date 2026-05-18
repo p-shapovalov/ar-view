@@ -188,7 +188,15 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
                     val hasVertical = placedAnchor == null && session
                         .getAllTrackables(Plane::class.java)
                         .any { it.type == Plane.Type.VERTICAL && it.trackingState == TrackingState.TRACKING }
-                    customPlaneRenderer.update(session, frame)
+                    // Pre-placement: keep updating so the user sees walls
+                    // light up as ARCore finds them. Post-placement: hide
+                    // the visualizers (they served as a "tap here" affordance
+                    // and now just clutter the scene around the model).
+                    if (placedAnchor == null) {
+                        customPlaneRenderer.update(session, frame)
+                    } else if (customPlaneRenderer.isVisible) {
+                        customPlaneRenderer.isVisible = false
+                    }
                     val hint = computeHint(
                         camera.trackingState, camera.trackingFailureReason,
                         hasVertical, placedAnchor != null,

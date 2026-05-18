@@ -157,6 +157,12 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, ARSessionDele
         sceneView.session.add(anchor: anchor)
         placedAnchor = anchor
 
+        // Hide the wall-plane visualizers now that the model is placed —
+        // they served as a "tap here" affordance and clutter the scene
+        // afterwards. New planes detected post-placement are already
+        // suppressed by the `placedAnchor == nil` guard in `didAdd`.
+        trackedPlanes.values.forEach { $0.1.removeFromParentNode() }
+
         channel.invokeMethod("onPlaneTap", arguments: ["hitMatrix": serializeMatrix(corrected)])
     }
 
