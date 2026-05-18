@@ -8,12 +8,13 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 /**
  * Per-view method-channel surface between Dart and the native 3D view.
  *
- * Direction      | Method     | Payload
- * ---------------+------------+----------------------------------------
- * Dart → Native  | loadModel  | { modelPath: String }
- *
- * No back-channel — gestures and autofit are handled natively by
- * SceneView, so there's nothing per-frame to surface.
+ * Direction      | Method       | Payload
+ * ---------------+--------------+----------------------------------------
+ * Dart → Native  | loadModel    | { modelPath: String }
+ * Dart → Native  | removeNode   | { name: String }              → Boolean
+ * Dart → Native  | restoreNode  | { name: String }              → Boolean
+ * Dart → Native  | listNodes    | -                              → List<String>
+ * Native → Dart  | onNodeTap    | { name: String }
  */
 abstract class Flutter3DMethodChannel(messenger: BinaryMessenger, id: Int) : MethodCallHandler {
     private val methodChannel: MethodChannel = MethodChannel(messenger, "three_d_$id")
@@ -29,11 +30,35 @@ abstract class Flutter3DMethodChannel(messenger: BinaryMessenger, id: Int) : Met
                 onLoadModel(path)
                 result.success(null)
             }
+            "removeNode" -> {
+                val name = call.argument<String>("name")
+                if (name == null) {
+                    result.error("INVALID_ARG", "name is required", null)
+                    return
+                }
+                result.success(onRemoveNode(name))
+            }
+            "restoreNode" -> {
+                val name = call.argument<String>("name")
+                if (name == null) {
+                    result.error("INVALID_ARG", "name is required", null)
+                    return
+                }
+                result.success(onRestoreNode(name))
+            }
+            "listNodes" -> result.success(onListNodes())
             else -> result.notImplemented()
         }
     }
 
     protected abstract fun onLoadModel(modelPath: String)
+    protected abstract fun onRemoveNode(name: String): Boolean
+    protected abstract fun onRestoreNode(name: String): Boolean
+    protected abstract fun onListNodes(): List<String>
+
+    fun onNodeTap(name: String) {
+        methodChannel.invokeMethod("onNodeTap", hashMapOf<String, Any>("name" to name))
+    }
 
     fun attachMethodChannel() {
         methodChannel.setMethodCallHandler(this)

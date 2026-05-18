@@ -37,6 +37,7 @@ Future<bool> checkArAvailability() async {
 typedef ArViewCreatedCallback = void Function(ArViewController controller);
 typedef ArHitCallback = void Function(ARHitResult result);
 typedef ArTrackingCallback = void Function(ARTrackingState state);
+typedef ArNodeTapCallback = void Function(String name);
 
 class ArView extends StatefulWidget {
   const ArView({
@@ -45,6 +46,7 @@ class ArView extends StatefulWidget {
     required this.onPlaneTap,
     required this.controller,
     this.onTrackingState,
+    this.onNodeTap,
     this.width = 300,
     this.height = 300,
   });
@@ -55,6 +57,7 @@ class ArView extends StatefulWidget {
   final ArViewCreatedCallback onArViewCreated;
   final ArHitCallback onPlaneTap;
   final ArTrackingCallback? onTrackingState;
+  final ArNodeTapCallback? onNodeTap;
 
   @override
   ArViewState createState() => ArViewState();
@@ -103,6 +106,10 @@ class ArViewController {
       case 'onPlaneTap':
         widget.onPlaneTap(ARHitResult.fromJson(methodCall.arguments));
         break;
+      case 'onNodeTap':
+        final name = (methodCall.arguments as Map?)?['name'] as String?;
+        if (name != null) widget.onNodeTap?.call(name);
+        break;
     }
   }
 
@@ -114,5 +121,24 @@ class ArViewController {
       'modelPath': assetPath,
       'fitMeters': fitMeters,
     });
+  }
+
+  /// Hide the subtree under the named glTF node on the placed model.
+  /// No-op until the user has tapped a wall to place; returns false in
+  /// that case. The hidden subtree is retained natively so
+  /// [restoreNode] can put it back.
+  Future<bool> removeNode(String name) async {
+    final r = await _channel.invokeMethod<bool>('removeNode', {'name': name});
+    return r ?? false;
+  }
+
+  Future<bool> restoreNode(String name) async {
+    final r = await _channel.invokeMethod<bool>('restoreNode', {'name': name});
+    return r ?? false;
+  }
+
+  Future<List<String>> listNodes() async {
+    final r = await _channel.invokeMethod<List<dynamic>>('listNodes');
+    return r?.cast<String>() ?? const [];
   }
 }

@@ -1,9 +1,13 @@
 package com.paidviewpoint.ar
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.View
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,6 +23,7 @@ import io.github.sceneview.node.ModelNode
 import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberMaterialLoader
 import io.github.sceneview.rememberModelLoader
+import io.github.sceneview.rememberOnGestureListener
 
 /**
  * Non-AR 3D model viewer. Hosts SceneView's `SceneView` composable inside
@@ -29,6 +34,10 @@ class Flutter3DView(context: Context, messenger: BinaryMessenger, id: Int) : Pla
     Flutter3DMethodChannel(messenger, id) {
 
     private var modelPath by mutableStateOf<String?>(null)
+    private var modelNodeRef by mutableStateOf<ModelNode?>(null)
+    private var hiddenNodeNames by mutableStateOf<Set<String>>(emptySet())
+
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     private val host = ComposePlatformHost(
         context,
@@ -50,12 +59,23 @@ class Flutter3DView(context: Context, messenger: BinaryMessenger, id: Int) : Pla
                 }
             }
 
+            val gestureListener = rememberOnGestureListener(
+                onSingleTapConfirmed = { _, node ->
+                    val name = node?.let { firstNamedAncestorName(it, modelNodeRef) }
+                    if (name != null) {
+                        Log.d("ar", "3D node tap → $name")
+                        mainHandler.post { onNodeTap(name) }
+                    }
+                },
+            )
+
             SceneView(
                 modifier = Modifier.fillMaxSize(),
                 engine = engine,
                 modelLoader = modelLoader,
                 materialLoader = materialLoader,
                 cameraManipulator = panZoomManipulator,
+                onGestureListener = gestureListener,
                 // autoFitContent moves the camera to fit each model's
                 // native size, which leaves the Manipulator's hardcoded
                 // speeds (`zoomSpeed=0.05` etc.) too slow for big models
@@ -72,14 +92,27 @@ class Flutter3DView(context: Context, messenger: BinaryMessenger, id: Int) : Pla
                     // when the user swaps to a different glb path so they
                     // don't accumulate across loads.
                     DisposableEffect(instance) {
-                        onDispose { modelLoader.destroyModel(instance.model) }
+                        onDispose {
+                            modelLoader.destroyModel(instance.model)
+                            modelNodeRef = null
+                            // Hide-state survives model swaps deliberately —
+                            // a same-named node in the new model stays hidden
+                            // until restored.
+                        }
                     }
                     ModelNode(
                         modelInstance = instance,
                         scaleToUnits = FIT_METERS,
                         autoAnimate = true,
+                        apply = { modelNodeRef = this },
                     )
                 }
+            }
+
+            val mn = modelNodeRef
+            val hidden = hiddenNodeNames
+            LaunchedEffect(mn, hidden) {
+                if (mn != null) applyVisibility(mn, hidden)
             }
         }
     }
@@ -93,6 +126,21 @@ class Flutter3DView(context: Context, messenger: BinaryMessenger, id: Int) : Pla
     override fun onLoadModel(modelPath: String) {
         this.modelPath = modelPath
     }
+
+    override fun onRemoveNode(name: String): Boolean {
+        val mn = modelNodeRef ?: return false
+        if (mn.nodes.none { it.name == name }) return false
+        hiddenNodeNames = hiddenNodeNames + name
+        return true
+    }
+
+    override fun onRestoreNode(name: String): Boolean {
+        if (name !in hiddenNodeNames) return false
+        hiddenNodeNames = hiddenNodeNames - name
+        return true
+    }
+
+    override fun onListNodes(): List<String> = listNodeNames(modelNodeRef)
 
     private companion object {
         // Largest-extent target for normalising loaded models. Matches the

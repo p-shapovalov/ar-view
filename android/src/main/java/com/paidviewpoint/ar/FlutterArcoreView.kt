@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -14,6 +15,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,9 +45,11 @@ import io.github.sceneview.ar.scene.PlaneRenderer
 import io.github.sceneview.math.Position
 import io.github.sceneview.math.Scale
 import io.github.sceneview.model.model
+import io.github.sceneview.node.ModelNode
 import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberMaterialLoader
 import io.github.sceneview.rememberModelLoader
+import io.github.sceneview.rememberOnGestureListener
 import io.github.sceneview.rememberScene
 
 /**
@@ -81,6 +85,8 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
     private var modelPath by mutableStateOf<String?>(null)
     private var fitMeters by mutableStateOf(2.0f)
     private var placedAnchor by mutableStateOf<Anchor?>(null)
+    private var modelNodeRef by mutableStateOf<ModelNode?>(null)
+    private var hiddenNodeNames by mutableStateOf<Set<String>>(emptySet())
 
     // User adjustments applied to the placed model on top of the auto-fit
     // transform. `modelScale` multiplies the `scaleToUnits` size; X/Y are
@@ -142,9 +148,24 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
                 onDispose { customPlaneRenderer.destroy() }
             }
 
+            // Pre-placement, the existing onTouchEvent handles ACTION_UP→place.
+            // Post-placement, single-tap-confirmed selects nodes on the placed model.
+            val gestureListener = rememberOnGestureListener(
+                onSingleTapConfirmed = { _, node ->
+                    if (placedAnchor != null && node != null) {
+                        val name = firstNamedAncestorName(node, modelNodeRef)
+                        if (name != null) {
+                            Log.d("ar", "AR node tap → $name")
+                            mainHandler.post { onNodeTap(name) }
+                        }
+                    }
+                },
+            )
+
             ARSceneView(
                 modifier = Modifier.fillMaxSize(),
                 scene = scene,
+                onGestureListener = gestureListener,
                 // TextureSurface (TextureView under the hood) composites
                 // inline with the view tree, so the hint TextView layered
                 // on top in our FrameLayout actually renders above the AR
@@ -246,7 +267,10 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
                         modelLoader.createModelInstance("flutter_assets/$path")
                     }
                     DisposableEffect(instance) {
-                        onDispose { modelLoader.destroyModel(instance.model) }
+                        onDispose {
+                            modelLoader.destroyModel(instance.model)
+                            modelNodeRef = null
+                        }
                     }
                     AnchorNode(
                         anchor = anchor,
@@ -270,10 +294,17 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
                                 modelInstance = instance,
                                 scaleToUnits = fitMeters,
                                 autoAnimate = true,
+                                apply = { modelNodeRef = this },
                             )
                         }
                     }
                 }
+            }
+
+            val mn = modelNodeRef
+            val hidden = hiddenNodeNames
+            LaunchedEffect(mn, hidden) {
+                if (mn != null) applyVisibility(mn, hidden)
             }
         }
     }
@@ -301,6 +332,21 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
         this.modelPath = modelPath
         this.fitMeters = fitMeters
     }
+
+    override fun onRemoveNode(name: String): Boolean {
+        val mn = modelNodeRef ?: return false
+        if (mn.nodes.none { it.name == name }) return false
+        hiddenNodeNames = hiddenNodeNames + name
+        return true
+    }
+
+    override fun onRestoreNode(name: String): Boolean {
+        if (name !in hiddenNodeNames) return false
+        hiddenNodeNames = hiddenNodeNames - name
+        return true
+    }
+
+    override fun onListNodes(): List<String> = listNodeNames(modelNodeRef)
 
     private fun handleTap(event: MotionEvent, frame: Frame?) {
         val f = frame ?: return

@@ -11,8 +11,12 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
  * Direction              | Method          | Payload
  * -----------------------+-----------------+------------------------------------
  * Dart → Native          | loadModel       | { modelPath: String, fitMeters: Double }
+ * Dart → Native          | removeNode      | { name: String }                   → Boolean
+ * Dart → Native          | restoreNode     | { name: String }                   → Boolean
+ * Dart → Native          | listNodes       | -                                   → List<String>
  * Native → Dart          | onPlaneTap      | { hitMatrix: FloatArray(16) }
  * Native → Dart          | onTrackingState | { trackingState: String, trackingFailureReason: String, hasPlanes: Boolean }
+ * Native → Dart          | onNodeTap       | { name: String }                   (post-placement only)
  */
 abstract class FlutterArcoreMethodChannel(messenger: BinaryMessenger, id: Int) : MethodCallHandler {
     private val methodChannel: MethodChannel = MethodChannel(messenger, "ar_$id")
@@ -29,12 +33,32 @@ abstract class FlutterArcoreMethodChannel(messenger: BinaryMessenger, id: Int) :
                 onLoadModel(path, fitMeters)
                 result.success(null)
             }
+            "removeNode" -> {
+                val name = call.argument<String>("name")
+                if (name == null) {
+                    result.error("INVALID_ARG", "name is required", null)
+                    return
+                }
+                result.success(onRemoveNode(name))
+            }
+            "restoreNode" -> {
+                val name = call.argument<String>("name")
+                if (name == null) {
+                    result.error("INVALID_ARG", "name is required", null)
+                    return
+                }
+                result.success(onRestoreNode(name))
+            }
+            "listNodes" -> result.success(onListNodes())
             else -> result.notImplemented()
         }
     }
 
     /** Implemented by [FlutterArcoreView] to receive `loadModel` requests. */
     protected abstract fun onLoadModel(modelPath: String, fitMeters: Float)
+    protected abstract fun onRemoveNode(name: String): Boolean
+    protected abstract fun onRestoreNode(name: String): Boolean
+    protected abstract fun onListNodes(): List<String>
 
     fun onPlaneTap(hitMatrix: FloatArray) {
         val payload = HashMap<String, Any>(1)
@@ -53,6 +77,10 @@ abstract class FlutterArcoreMethodChannel(messenger: BinaryMessenger, id: Int) :
         payload["trackingFailureReason"] = trackingFailureReason
         payload["hasPlanes"] = hasPlanes
         methodChannel.invokeMethod("onTrackingState", payload)
+    }
+
+    fun onNodeTap(name: String) {
+        methodChannel.invokeMethod("onNodeTap", hashMapOf<String, Any>("name" to name))
     }
 
     fun attachMethodChannel() {

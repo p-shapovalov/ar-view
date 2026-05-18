@@ -24,6 +24,11 @@ class TransformArViewController {
   final ValueNotifier<ArTrackingFailureReason> trackingFailureReason =
       ValueNotifier(ArTrackingFailureReason.none);
 
+  /// Fires when the user taps a named node on the *placed* model. No
+  /// callbacks before placement — those taps are interpreted as
+  /// "place the model here" by the native side.
+  ArNodeTapCallback? onNodeTap;
+
   String? _modelAssetPath;
   ArViewController? _arView;
 
@@ -49,6 +54,17 @@ class TransformArViewController {
     if (v != null && p != null) v.loadModel(p, fitMeters: _kArFitMeters);
   }
 
+  /// Hide the subtree under the named glTF node on the placed model.
+  /// Returns false if no model is placed yet or no matching node exists.
+  Future<bool> removeNode(String name) async =>
+      await _arView?.removeNode(name) ?? false;
+
+  Future<bool> restoreNode(String name) async =>
+      await _arView?.restoreNode(name) ?? false;
+
+  Future<List<String>> listNodes() async =>
+      await _arView?.listNodes() ?? const [];
+
   void dispose() {
     planeDetected.dispose();
     trackingState.dispose();
@@ -71,6 +87,7 @@ class TransformArView extends StatelessWidget {
       onArViewCreated: controller._attachArView,
       onTrackingState: _onTrackingState,
       onPlaneTap: _onPlaneTap,
+      onNodeTap: (name) => controller.onNodeTap?.call(name),
     );
   }
 

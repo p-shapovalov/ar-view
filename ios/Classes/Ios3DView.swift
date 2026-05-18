@@ -15,6 +15,8 @@ class Ios3DView: NSObject, FlutterPlatformView {
     private var loadedAssetPath: String?
 
     private weak var cameraNode: SCNNode?
+    private weak var modelContainer: SCNNode?
+    private var removedNodes = DetachedSubtreeStore()
     // Post-autoFit world XY extents of the loaded model (Z-extent is
     // ignored — the camera looks down -Z, so depth doesn't constrain fit).
     private var modelExtentX: Float = 0
@@ -50,8 +52,11 @@ class Ios3DView: NSObject, FlutterPlatformView {
         pan.delegate = self
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
         pinch.delegate = self
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        tap.delegate = self
         sceneView.addGestureRecognizer(pan)
         sceneView.addGestureRecognizer(pinch)
+        sceneView.addGestureRecognizer(tap)
 
         channel.setMethodCallHandler { [weak self] call, result in
             self?.onMethodCall(call, result: result)
@@ -70,6 +75,22 @@ class Ios3DView: NSObject, FlutterPlatformView {
             }
             loadModel(assetPath: modelPath)
             result(nil)
+        case "removeNode":
+            let args = call.arguments as? [String: Any] ?? [:]
+            guard let name = args["name"] as? String else {
+                result(FlutterError(code: "INVALID_ARG", message: "name is required", details: nil))
+                return
+            }
+            result(removeNode(named: name))
+        case "restoreNode":
+            let args = call.arguments as? [String: Any] ?? [:]
+            guard let name = args["name"] as? String else {
+                result(FlutterError(code: "INVALID_ARG", message: "name is required", details: nil))
+                return
+            }
+            result(restoreNode(named: name))
+        case "listNodes":
+            result(listNodeNames())
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -119,6 +140,9 @@ class Ios3DView: NSObject, FlutterPlatformView {
                 self.sceneView.scene = scene
                 self.sceneView.pointOfView = cameraNode
                 self.cameraNode = cameraNode
+                self.modelContainer = container
+                // Drop refs to nodes from the previous (now deallocated) model.
+                self.removedNodes.clear()
 
                 // Capture the model's world XY extents post-autoFit so
                 // refitCameraIfNeeded() can dolly the camera to fit them.
@@ -202,6 +226,29 @@ class Ios3DView: NSObject, FlutterPlatformView {
             cam.position = SCNVector3(cam.position.x, cam.position.y, clamped)
         default: break
         }
+    }
+
+    @objc private func handleTap(_ r: UITapGestureRecognizer) {
+        guard let container = modelContainer else { return }
+        let hits = sceneView.hitTest(r.location(in: sceneView), options: [
+            .searchMode: SCNHitTestSearchMode.closest.rawValue,
+        ])
+        guard let name = hits.first?.node.firstNamedAncestorName(stoppingAt: container) else { return }
+        NSLog("ar: 3D node tap → \(name)")
+        channel.invokeMethod("onNodeTap", arguments: ["name": name])
+    }
+
+    private func removeNode(named name: String) -> Bool {
+        guard let container = modelContainer else { return false }
+        return removedNodes.remove(named: name, from: container)
+    }
+
+    private func restoreNode(named name: String) -> Bool {
+        return removedNodes.restore(named: name)
+    }
+
+    private func listNodeNames() -> [String] {
+        return modelContainer?.namedDescendants() ?? []
     }
 
     private static let fitMeters: Float = 1.5

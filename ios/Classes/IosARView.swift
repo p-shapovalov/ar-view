@@ -32,6 +32,9 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, ARSessionDele
     // let the user fine-tune size and position within the anchor's local
     // frame (anchor's +X = wall horizontal, +Y = world up, +Z = wall out).
     private weak var placedModelNode: SCNNode?
+    // Scoped to the current placedModelNode — cleared whenever a fresh
+    // clone is attached so refs into a defunct clone can't dangle.
+    private var removedNodes = DetachedSubtreeStore()
     // Auto-fit transform captured at placement time so per-gesture deltas
     // can be applied on top without compounding.
     private var modelBaseScale: SCNVector3 = SCNVector3(1, 1, 1)
@@ -101,6 +104,22 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, ARSessionDele
             let fit = (args["fitMeters"] as? Double).map { Float($0) } ?? 2.0
             loadModel(assetPath: modelPath, fitMeters: fit)
             result(nil)
+        case "removeNode":
+            let args = call.arguments as? [String: Any] ?? [:]
+            guard let name = args["name"] as? String else {
+                result(FlutterError(code: "INVALID_ARG", message: "name is required", details: nil))
+                return
+            }
+            result(removeNode(named: name))
+        case "restoreNode":
+            let args = call.arguments as? [String: Any] ?? [:]
+            guard let name = args["name"] as? String else {
+                result(FlutterError(code: "INVALID_ARG", message: "name is required", details: nil))
+                return
+            }
+            result(restoreNode(named: name))
+        case "listNodes":
+            result(listNodeNames())
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -140,8 +159,12 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, ARSessionDele
     // MARK: - Tap → anchor placement
 
     @objc private func handleTap(_ recognizer: UITapGestureRecognizer) {
-        guard placedAnchor == nil, modelTemplate != nil else { return }
         let location = recognizer.location(in: sceneView)
+        if placedAnchor != nil {
+            handleNodeTap(at: location)
+            return
+        }
+        guard modelTemplate != nil else { return }
         guard let query = sceneView.raycastQuery(
             from: location,
             allowing: .existingPlaneGeometry,
@@ -240,6 +263,35 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, ARSessionDele
         return m
     }
 
+    // MARK: - Node remove / restore / tap
+
+    private func handleNodeTap(at point: CGPoint) {
+        guard let root = placedModelNode else { return }
+        // Scope the hit-test to the placed model — taps on the AR camera
+        // feed shouldn't surface unrelated SceneKit world nodes or the
+        // plane visualizers.
+        let hits = sceneView.hitTest(point, options: [
+            .rootNode: root,
+            .searchMode: SCNHitTestSearchMode.closest.rawValue,
+        ])
+        guard let name = hits.first?.node.firstNamedAncestorName(stoppingAt: root) else { return }
+        NSLog("ar: AR node tap → \(name)")
+        channel.invokeMethod("onNodeTap", arguments: ["name": name])
+    }
+
+    private func removeNode(named name: String) -> Bool {
+        guard let root = placedModelNode else { return false }
+        return removedNodes.remove(named: name, from: root)
+    }
+
+    private func restoreNode(named name: String) -> Bool {
+        return removedNodes.restore(named: name)
+    }
+
+    private func listNodeNames() -> [String] {
+        return placedModelNode?.namedDescendants() ?? []
+    }
+
     // MARK: - ARSCNViewDelegate (plane viz + model attachment)
 
     func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
@@ -251,6 +303,8 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, ARSessionDele
             let modelNode = template.clone()
             node.addChildNode(modelNode)
             placedModelNode = modelNode
+            // Drop refs into the previous (defunct) clone.
+            removedNodes.clear()
             modelBaseScale = modelNode.scale
             modelBasePosition = modelNode.position
             userScale = 1.0
