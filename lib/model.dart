@@ -5,7 +5,8 @@ Matrix4 _matrixFromJson(dynamic json) =>
 
 /// ARCore's `TrackingState` enum, mirrored verbatim. PAUSED can mean either
 /// "still bootstrapping" (camera just started, no failure) or "tracking lost"
-/// — disambiguate via [ARFrameResult.trackingFailureReason].
+/// — disambiguate via [ARTrackingState.trackingFailureReason]. iOS reports
+/// the same enum names (mapped from ARKit's `ARCamera.TrackingState`).
 enum ArTrackingState { tracking, paused, stopped, unknown }
 
 ArTrackingState _trackingStateFrom(dynamic name) {
@@ -23,7 +24,8 @@ ArTrackingState _trackingStateFrom(dynamic name) {
 
 /// ARCore's `TrackingFailureReason` enum, mirrored verbatim. `none` means
 /// "tracking is fine or just bootstrapping" — only treat as a failure when
-/// [ARFrameResult.trackingState] is `paused`.
+/// [ARTrackingState.trackingState] is `paused`. iOS maps its smaller set
+/// of `ARCamera.TrackingState.Reason` values onto the same names.
 enum ArTrackingFailureReason {
   none,
   badState,
@@ -53,30 +55,6 @@ ArTrackingFailureReason _failureReasonFrom(dynamic name) {
   }
 }
 
-class ARFrameResult {
-  ARFrameResult({
-    required this.projectionMatrix,
-    required this.viewMatrix,
-    required this.hasPlanes,
-    required this.trackingState,
-    required this.trackingFailureReason,
-  });
-
-  final Matrix4 projectionMatrix;
-  final Matrix4 viewMatrix;
-  final bool hasPlanes;
-  final ArTrackingState trackingState;
-  final ArTrackingFailureReason trackingFailureReason;
-
-  static ARFrameResult fromJson(dynamic json) => ARFrameResult(
-        projectionMatrix: _matrixFromJson(json['projectionMatrix']),
-        viewMatrix: _matrixFromJson(json['viewMatrix']),
-        hasPlanes: json['hasPlanes'] ?? false,
-        trackingState: _trackingStateFrom(json['trackingState']),
-        trackingFailureReason: _failureReasonFrom(json['trackingFailureReason']),
-      );
-}
-
 class ARHitResult {
   ARHitResult({required this.hitMatrix});
 
@@ -84,4 +62,23 @@ class ARHitResult {
 
   static ARHitResult fromJson(dynamic json) =>
       ARHitResult(hitMatrix: _matrixFromJson(json['hitMatrix']));
+}
+
+/// Per-frame tracking snapshot streamed from the native renderer.
+class ARTrackingState {
+  ARTrackingState({
+    required this.trackingState,
+    required this.trackingFailureReason,
+    required this.hasPlanes,
+  });
+
+  final ArTrackingState trackingState;
+  final ArTrackingFailureReason trackingFailureReason;
+  final bool hasPlanes;
+
+  static ARTrackingState fromJson(dynamic json) => ARTrackingState(
+        trackingState: _trackingStateFrom(json['trackingState']),
+        trackingFailureReason: _failureReasonFrom(json['trackingFailureReason']),
+        hasPlanes: json['hasPlanes'] ?? false,
+      );
 }

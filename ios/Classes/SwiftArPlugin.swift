@@ -13,6 +13,9 @@ public class SwiftArPlugin: NSObject, FlutterPlugin {
       
         let factory = IosARViewFactory(messenger: registrar.messenger())
         registrar.register(factory, withId: "com.paidviewpoint.ar")
+
+        let factory3D = Ios3DViewFactory(messenger: registrar.messenger())
+        registrar.register(factory3D, withId: "com.paidviewpoint.three_d")
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {

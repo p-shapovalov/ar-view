@@ -1,13 +1,10 @@
 package com.paidviewpoint.ar
 
-import android.app.Activity
-import android.app.Application
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
-import android.opengl.GLSurfaceView
-import android.os.Bundle
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -15,37 +12,53 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
 import android.widget.TextView
-import com.google.ar.core.*
-import com.google.ar.core.ArCoreApk.InstallStatus
-import com.google.ar.core.exceptions.CameraNotAvailableException
-import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException
-import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException
-import common.helpers.DisplayRotationHelper
-import common.helpers.TapHelper
-import common.helpers.TrackingStateHelper
-import common.samplerender.SampleRender
-import common.samplerender.arcore.BackgroundRenderer
-import common.samplerender.arcore.PlaneRenderer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.LifecycleOwner
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
+import com.google.ar.core.Anchor
+import com.google.ar.core.Config
+import com.google.ar.core.Frame
+import com.google.ar.core.Plane
+import com.google.ar.core.Pose
+import com.google.ar.core.TrackingFailureReason
+import com.google.ar.core.TrackingState
+import dev.romainguy.kotlin.math.Float3
+import dev.romainguy.kotlin.math.Mat4
+import dev.romainguy.kotlin.math.cross
+import dev.romainguy.kotlin.math.dot
+import dev.romainguy.kotlin.math.normalize
+import dev.romainguy.kotlin.math.quaternion
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.platform.PlatformView
-import java.io.IOException
+import io.github.sceneview.SurfaceType
+import io.github.sceneview.ar.ARSceneView
+import io.github.sceneview.ar.scene.PlaneRenderer
+import io.github.sceneview.math.Position
+import io.github.sceneview.math.Scale
+import io.github.sceneview.model.model
+import io.github.sceneview.rememberEngine
+import io.github.sceneview.rememberMaterialLoader
+import io.github.sceneview.rememberModelLoader
+import io.github.sceneview.rememberScene
 
+/**
+ * Hosts SceneView's [ARSceneView] inside a [ComposeView]. The glb model
+ * is rendered in the same Filament/GL context as the ARCore camera feed
+ * and placed when the user taps a vertical plane (wall).
+ */
 class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) : PlatformView,
-    FlutterArcoreMethodChannel(messenger, id), SampleRender.Renderer {
+    FlutterArcoreMethodChannel(messenger, id) {
 
-    // Held so `dispose()` can unregister our application-level lifecycle callbacks.
-    private val application = context.applicationContext as Application
-
-    // GLES3 rendering framework + AR helpers.
-    private val surfaceView = GLSurfaceView(context)
-    private val render: SampleRender = SampleRender(surfaceView, this, context.assets)
-    private var backgroundRenderer: BackgroundRenderer? = null
-    private var planeRenderer: PlaneRenderer? = null
-    private var hasSetCameraTextureName = false
-
-    // Native instruction overlay (snackbar-style pill at the bottom). The state machine
-    // mirrors hello_ar_java's HelloArActivity#onDrawFrame: searching → tap-to-place →
-    // hidden, with TrackingFailureReason strings surfaced when tracking is paused.
+    // Snackbar-pill hint ("Searching for surfaces…", "Tap a wall…",
+    // tracking-failure copy) layered on top of the ComposeView in the
+    // FrameLayout below.
     private val hintView: TextView = TextView(context).apply {
         val density = context.resources.displayMetrics.density
         val padH = (16 * density).toInt()
@@ -60,8 +73,205 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
         }
         visibility = View.GONE
     }
+    private var lastHint: String? = null
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    // Reactive Compose state — single source of truth the method channel mutates.
+    private var modelPath by mutableStateOf<String?>(null)
+    private var fitMeters by mutableStateOf(2.0f)
+    private var placedAnchor by mutableStateOf<Anchor?>(null)
+
+    // User adjustments applied to the placed model on top of the auto-fit
+    // transform. `modelScale` multiplies the `scaleToUnits` size; X/Y are
+    // along the anchor's local axes — after `wallMountedPose` those are
+    // horizontal-along-wall and world-up, so dragging keeps the model on
+    // the wall surface.
+    private var modelScale by mutableStateOf(1.0f)
+    private var modelOffsetX by mutableStateOf(0.0f)
+    private var modelOffsetY by mutableStateOf(0.0f)
+
+    private val scaleDetector = ScaleGestureDetector(
+        context,
+        object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            override fun onScale(detector: ScaleGestureDetector): Boolean {
+                modelScale = (modelScale * detector.scaleFactor).coerceIn(MIN_SCALE, MAX_SCALE)
+                return true
+            }
+        },
+    )
+    private var lastDragX = 0f
+    private var lastDragY = 0f
+    private var isPanning = false
+
+    // Cache of the last tracking snapshot sent to Dart, used to skip the
+    // method-channel hop when nothing changed (onSessionUpdated fires
+    // every AR frame).
+    private var lastTrackingState: String? = null
+    private var lastFailureReason: String? = null
+    private var lastHasPlanes: Boolean? = null
+
+    // Latest ARCore Frame, written each tick by onSessionUpdated and read
+    // by onTouchEvent. Volatile because the touch callback runs on the UI
+    // thread while onSessionUpdated runs on the GL/render thread.
+    @Volatile private var latestFrame: Frame? = null
+
+    private val host = ComposePlatformHost(
+        context,
+        (ArPlugin.activityPluginBinding.activity as LifecycleOwner).lifecycle,
+    ).also { host ->
+        host.setContent {
+            val engine = rememberEngine()
+            val modelLoader = rememberModelLoader(engine)
+            val materialLoader = rememberMaterialLoader(engine)
+            // Share one Scene with both ARSceneView and our PlaneRenderer
+            // so the renderer's plane visualizers show up in the same
+            // scene ARSceneView renders.
+            val scene = rememberScene(engine)
+            val customPlaneRenderer = remember(engine, materialLoader, scene) {
+                PlaneRenderer(engine, materialLoader, scene).apply {
+                    // SceneView's built-in PlaneRenderer is hard-coded to
+                    // RENDER_CENTER (horizontals only, via a center hit-test);
+                    // RENDER_ALL draws every updated plane regardless of type.
+                    // Canonical fix per the View-based ARSceneView pattern in
+                    // github.com/SceneView/sceneview-android/issues/54.
+                    planeRendererMode = PlaneRenderer.PlaneRendererMode.RENDER_ALL
+                }
+            }
+            DisposableEffect(customPlaneRenderer) {
+                onDispose { customPlaneRenderer.destroy() }
+            }
+
+            ARSceneView(
+                modifier = Modifier.fillMaxSize(),
+                scene = scene,
+                // TextureSurface (TextureView under the hood) composites
+                // inline with the view tree, so the hint TextView layered
+                // on top in our FrameLayout actually renders above the AR
+                // feed. The default SurfaceType.Surface uses a SurfaceView
+                // with z-order-on-top, which would hide overlay UI.
+                surfaceType = SurfaceType.TextureSurface,
+                engine = engine,
+                modelLoader = modelLoader,
+                materialLoader = materialLoader,
+                // SceneView's built-in renderer is hard-coded to
+                // RENDER_CENTER (horizontals only via a center hit-test)
+                // and the mode is private to the composable. Disable it
+                // and drive our own RENDER_ALL renderer (see
+                // github.com/SceneView/sceneview-android/issues/54).
+                planeRenderer = false,
+                sessionConfiguration = { _, config ->
+                    config.planeFindingMode = Config.PlaneFindingMode.VERTICAL
+                    config.focusMode = Config.FocusMode.AUTO
+                },
+                onSessionFailed = { exception ->
+                    // Surface ARCore session failures (missing/outdated
+                    // ARCore APK, device-not-compatible, camera
+                    // permission, etc.) through the shared `ar` channel
+                    // so they reach Dart's `lastError` notifier. Without
+                    // this they're only visible in logcat.
+                    val msg = exception.javaClass.simpleName + ": " +
+                        (exception.message ?: "ARCore session failed")
+                    mainHandler.post {
+                        ArPlugin.channel.invokeMethod("error", msg)
+                    }
+                },
+                onSessionUpdated = { session, frame ->
+                    latestFrame = frame
+                    val camera = frame.camera
+                    // getAllTrackables — not frame.getUpdatedPlanes(),
+                    // which only returns the planes that *changed* this
+                    // frame; once a wall stabilises hasVertical would
+                    // flicker back to false and the hint would oscillate.
+                    // Skip the per-frame Collection allocation once placed
+                    // — the hint pill is hidden anyway in `computeHint`.
+                    val hasVertical = placedAnchor == null && session
+                        .getAllTrackables(Plane::class.java)
+                        .any { it.type == Plane.Type.VERTICAL && it.trackingState == TrackingState.TRACKING }
+                    customPlaneRenderer.update(session, frame)
+                    val hint = computeHint(
+                        camera.trackingState, camera.trackingFailureReason,
+                        hasVertical, placedAnchor != null,
+                    )
+                    val state = camera.trackingState.name
+                    val reason = camera.trackingFailureReason.name
+                    val stateChanged = state != lastTrackingState ||
+                        reason != lastFailureReason ||
+                        hasVertical != lastHasPlanes
+                    if (!stateChanged && lastHint == hint) return@ARSceneView
+                    lastTrackingState = state
+                    lastFailureReason = reason
+                    lastHasPlanes = hasVertical
+                    mainHandler.post {
+                        updateHint(hint)
+                        if (stateChanged) onTrackingState(state, reason, hasVertical)
+                    }
+                },
+                onTouchEvent = { event, _ ->
+                    // Pre-placement: tap to anchor the model. Post-placement:
+                    // pinch to scale, single-finger drag to translate along
+                    // the wall plane.
+                    scaleDetector.onTouchEvent(event)
+                    val anchored = placedAnchor != null
+                    if (!anchored) {
+                        if (event.actionMasked == MotionEvent.ACTION_UP &&
+                            !scaleDetector.isInProgress
+                        ) handleTap(event, latestFrame)
+                    } else if (event.pointerCount == 1 && !scaleDetector.isInProgress) {
+                        handleDrag(event)
+                    }
+                    if (event.actionMasked == MotionEvent.ACTION_UP ||
+                        event.actionMasked == MotionEvent.ACTION_CANCEL
+                    ) isPanning = false
+                    // Consume post-placement events so SceneView's internal
+                    // gesture detector doesn't compete with our pinch/drag.
+                    // Pre-placement we let the dispatcher continue (its
+                    // default no-op camera manipulator doesn't hurt) so the
+                    // ARSceneView's render loop sees the events normally.
+                    anchored
+                },
+            ) {
+                val path = modelPath
+                val anchor = placedAnchor
+                if (path != null && anchor != null) {
+                    val instance = remember(modelLoader, path) {
+                        modelLoader.createModelInstance("flutter_assets/$path")
+                    }
+                    DisposableEffect(instance) {
+                        onDispose { modelLoader.destroyModel(instance.model) }
+                    }
+                    AnchorNode(
+                        anchor = anchor,
+                        // AnchorNode defaults to `isPositionEditable = true`,
+                        // which means SceneView's touch dispatcher detaches
+                        // the anchor on drag and re-anchors via ARCore —
+                        // visually a sudden orientation snap. Disable so our
+                        // own pan handler fully controls model placement.
+                        apply = { isPositionEditable = false },
+                    ) {
+                        // Wrap the auto-fit ModelNode in a plain Node that
+                        // carries the user's pinch/drag adjustments —
+                        // `scaleToUnits` overrides the ModelNode's own scale
+                        // parameter, so user scale has to live on a parent
+                        // node where it can compose multiplicatively.
+                        Node(
+                            position = Position(modelOffsetX, modelOffsetY, 0f),
+                            scale = Scale(modelScale),
+                        ) {
+                            ModelNode(
+                                modelInstance = instance,
+                                scaleToUnits = fitMeters,
+                                autoAnimate = true,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private val rootView: FrameLayout = FrameLayout(context).apply {
-        addView(surfaceView, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+        addView(host.view, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
         val density = context.resources.displayMetrics.density
         val hintLp = FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
             gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
@@ -71,217 +281,119 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
         }
         addView(hintView, hintLp)
     }
-    private var lastHint: String? = null
 
-    private var installRequested: Boolean
-    // @Volatile so the GL thread sees `session = null` (set on dispose) without caching.
-    @Volatile private var session: Session? = null
-    @Volatile private var disposed = false
-    private val displayRotationHelper: DisplayRotationHelper
-    private var shouldConfigureSession = false
-    private val activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks
-    private var activityPaused = false
-    private val tapHelper: TapHelper
-    private val trackingStateHelper: TrackingStateHelper
-    private val activity get() = ArPlugin.activityPluginBinding.activity
+    init { attachMethodChannel() }
 
-    private var anchor: Anchor? = null
+    override fun getView(): View = rootView
 
-    private fun onPause() {
-        if (disposed) return
-        if (session != null) {
-            // Note that the order matters - GLSurfaceView is paused first so that it does not try
-            // to query the session. If Session is paused before GLSurfaceView, GLSurfaceView may
-            // still call session.update() and get a SessionPausedException.
-            displayRotationHelper.onPause()
-            session!!.pause()
-        }
+    override fun dispose() = host.dispose()
+
+    /** Called by [FlutterArcoreMethodChannel] when Dart invokes `loadModel`. */
+    override fun onLoadModel(modelPath: String, fitMeters: Float) {
+        this.modelPath = modelPath
+        this.fitMeters = fitMeters
     }
 
-    private fun onResume() {
-        if (disposed) return
-        if (session == null) {
-            var message: String? = null
-            try {
-                when (ArCoreApk.getInstance().requestInstall(activity, !installRequested)) {
-                    InstallStatus.INSTALL_REQUESTED -> {
-                        installRequested = true
-                        return
-                    }
-                    InstallStatus.INSTALLED -> {}
-                }
+    private fun handleTap(event: MotionEvent, frame: Frame?) {
+        val f = frame ?: return
+        if (f.camera.trackingState != TrackingState.TRACKING) return
+        val hit = f.hitTest(event).firstOrNull { h ->
+            val t = h.trackable
+            t is Plane && t.type == Plane.Type.VERTICAL &&
+                t.isPoseInPolygon(h.hitPose)
+        } ?: return
+        val plane = hit.trackable as Plane
+        val corrected = wallMountedPose(hit.hitPose, f.camera.pose)
+        placedAnchor = plane.createAnchor(corrected)
+        // Reset user adjustments — the new anchor IS the new origin.
+        modelScale = 1.0f
+        modelOffsetX = 0.0f
+        modelOffsetY = 0.0f
+        val hitMatrix = FloatArray(16).also { corrected.toMatrix(it, 0) }
+        mainHandler.post { onPlaneTap(hitMatrix) }
+    }
 
-                session = Session(activity)
-                Log.i(TAG, "Session created ")
-            } catch (e: UnavailableUserDeclinedInstallationException) {
-                message = "Please install ARCore"
-            } catch (e: UnavailableDeviceNotCompatibleException) {
-                message = "This device does not support AR"
-            } catch (e: Exception) {
-                message = "Failed to create AR session"
+    private fun handleDrag(event: MotionEvent) {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                lastDragX = event.x
+                lastDragY = event.y
+                isPanning = true
             }
-            if (message != null) {
-                ArPlugin.channel.invokeMethod("error", message)
-                return
+            MotionEvent.ACTION_MOVE -> if (isPanning) {
+                // Convert pixel deltas to anchor-local meters. fitMeters
+                // is the on-wall reference size, so 1 fitMeters per
+                // ~viewport-width pixels gives "drag the model across the
+                // wall at roughly screen speed".
+                val pxPerMeter = host.view.width.toFloat() / fitMeters.coerceAtLeast(0.01f)
+                val dx = (event.x - lastDragX) / pxPerMeter
+                val dy = (event.y - lastDragY) / pxPerMeter
+                modelOffsetX += dx
+                modelOffsetY -= dy // screen Y is inverted vs world up
+                lastDragX = event.x
+                lastDragY = event.y
             }
-            shouldConfigureSession = true
-        }
-        if (shouldConfigureSession) {
-            configureSession()
-            shouldConfigureSession = false
-        }
-        try {
-            session!!.resume()
-        } catch (e: CameraNotAvailableException) {
-            // In some cases (such as another camera app launching) the camera may be given to
-            // a different app instead. Close the just-created session so its native resources
-            // don't leak, then null it out so the next onResume() attempts a fresh create.
-            session?.close()
-            session = null
-            ArPlugin.channel.invokeMethod("error", "Camera is not available")
-            return
-        }
-        surfaceView.onResume()
-        displayRotationHelper.onResume()
-        // Force a re-bind of the camera texture on the next frame, in case the session was
-        // recreated above.
-        hasSetCameraTextureName = false
-    }
-
-    private fun configureSession() {
-        val config = Config(session)
-        config.focusMode = Config.FocusMode.AUTO
-        session!!.configure(config)
-    }
-
-    override fun onSurfaceCreated(render: SampleRender) {
-        try {
-            backgroundRenderer = BackgroundRenderer(render).also {
-                // Use the plain camera-feed shader; depth visualization and occlusion are
-                // unused (we don't call drawVirtualScene), so we skip loading those shaders.
-                it.setUseDepthVisualization(render, false)
-            }
-            planeRenderer = PlaneRenderer(render)
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to read a required asset file", e)
-            ArPlugin.channel.invokeMethod("error", "Failed to load AR shaders")
-        }
-    }
-
-    override fun onSurfaceChanged(render: SampleRender, width: Int, height: Int) {
-        displayRotationHelper.onSurfaceChanged(width, height)
-    }
-
-    override fun onDrawFrame(render: SampleRender) {
-        val session = this.session ?: return
-        val bg = backgroundRenderer ?: return
-        val planes = planeRenderer ?: return
-
-        // Notify ARCore session that the view size changed so that the perspective matrix and
-        // the video background can be properly adjusted.
-        displayRotationHelper.updateSessionIfNeeded(session)
-        if (activityPaused) return
-
-        // Bind the camera texture once per session — subsequent calls are no-ops, but the texture
-        // id changes whenever the session is recreated (e.g. after pause/resume).
-        if (!hasSetCameraTextureName) {
-            session.setCameraTextureName(bg.cameraColorTexture.textureId)
-            hasSetCameraTextureName = true
-        }
-
-        try {
-            // Obtain the current frame from ARSession. When the configuration is set to
-            // UpdateMode.BLOCKING (it is by default), this will throttle the rendering to the
-            // camera frame rate.
-            val frame = session.update()
-            val camera = frame.camera
-
-            bg.updateDisplayGeometry(frame)
-            bg.drawBackground(render)
-
-            // Hold the screen on while tracking; let it sleep when tracking stops.
-            trackingStateHelper.updateKeepScreenOnFlag(camera.trackingState)
-
-            val projectionMatrix = FloatArray(16)
-            camera.getProjectionMatrix(projectionMatrix, 0, 0.1f, 100.0f)
-            val viewMatrix = FloatArray(16)
-            camera.getViewMatrix(viewMatrix, 0)
-
-            // Even when not tracking, surface state to Dart so apps can build custom UIs.
-            // We compute plane info only when tracking is healthy.
-            val isTracking = camera.trackingState == TrackingState.TRACKING
-            val verticalPlanes = if (isTracking) {
-                session.getAllTrackables(Plane::class.java)
-                    .filter { it.type == Plane.Type.VERTICAL && it.trackingState == TrackingState.TRACKING }
-            } else {
-                emptyList()
-            }
-            val trackingStateName = camera.trackingState.name
-            val failureReasonName = camera.trackingFailureReason.name
-            val hintMessage = computeHint(camera, verticalPlanes.isNotEmpty(), anchor != null)
-            activity.runOnUiThread {
-                updateHint(hintMessage)
-                onFrame(
-                    projectionMatrix,
-                    viewMatrix,
-                    verticalPlanes.isNotEmpty(),
-                    trackingStateName,
-                    failureReasonName,
-                )
-            }
-
-            if (!isTracking) return
-            if (anchor != null) return
-            handleTap(frame, camera)
-            planes.drawPlanes(render, verticalPlanes, camera.displayOrientedPose, projectionMatrix)
-        } catch (t: Throwable) {
-            Log.e(TAG, "Exception on the OpenGL thread", t)
-        }
-    }
-
-    private fun handleTap(frame: Frame, camera: Camera) {
-        if (camera.trackingState != TrackingState.TRACKING) return
-        val tap = tapHelper.poll() ?: return
-        val hitResults = frame.hitTest(tap).filter { hit ->
-            hit.trackable?.let {
-                it is Plane &&
-                        it.type == Plane.Type.VERTICAL &&
-                        it.isPoseInPolygon(hit.hitPose) &&
-                        PlaneRenderer.calculateDistanceToPlane(hit.hitPose, camera.pose) > 0
-            } ?: false
-        }
-
-        if (hitResults.isNotEmpty()) {
-            val hitResult = hitResults.first()
-            val centerPose = (hitResult.trackable as Plane).centerPose
-            anchor = hitResult.trackable.createAnchor(centerPose)
-            activity.runOnUiThread { onPlaneTap(hitResult.hitPose) }
         }
     }
 
     /**
-     * State machine mirroring `HelloArActivity#onDrawFrame`:
-     *  - placed model → no hint
-     *  - PAUSED + failure reason → reason-specific copy
-     *  - PAUSED, no reason → "searching" (still bootstrapping)
+     * Build a [Pose] at the tap point whose orientation makes a glTF model
+     * "stand up" on the wall:
+     *  - +Y aligned to world up
+     *  - +Z aligned with the wall normal *toward* the camera (so the model
+     *    faces the user regardless of which side of the wall ARCore reports)
+     *
+     * ARCore vertical-plane poses have Y as the outward normal, so we
+     * rebuild the rotation basis explicitly from world up + the chosen
+     * forward direction.
+     */
+    private fun wallMountedPose(hitPose: Pose, cameraPose: Pose): Pose {
+        val ny = FloatArray(3).also { hitPose.getTransformedAxis(1, 1f, it, 0) }
+        val normal = normalize(Float3(ny[0], ny[1], ny[2]))
+        val hitPos = Float3(hitPose.tx(), hitPose.ty(), hitPose.tz())
+        val cameraPos = Float3(cameraPose.tx(), cameraPose.ty(), cameraPose.tz())
+        val toCamera = normalize(cameraPos - hitPos)
+        val forward = if (dot(normal, toCamera) >= 0f) normal else -normal
+        val worldUp = Float3(0f, 1f, 0f)
+        // Right-handed basis with forward = wall-out toward camera.
+        val right = normalize(cross(worldUp, forward))
+        val up = cross(forward, right)
+        val q = quaternion(Mat4(right, up, forward, hitPos))
+        return Pose(
+            floatArrayOf(hitPos.x, hitPos.y, hitPos.z),
+            floatArrayOf(q.x, q.y, q.z, q.w),
+        )
+    }
+
+    /**
+     * Snackbar copy:
+     *  - placed → no hint
+     *  - PAUSED + failure → reason-specific copy
+     *  - PAUSED, no reason → "searching"
      *  - TRACKING + no planes → "searching"
      *  - TRACKING + planes → "tap a wall"
-     *
-     * Returns the hint text to show, or `null` to hide the overlay.
      */
-    private fun computeHint(camera: Camera, hasPlanes: Boolean, hasAnchor: Boolean): String? {
+    private fun computeHint(
+        trackingState: TrackingState,
+        failureReason: TrackingFailureReason,
+        hasPlanes: Boolean,
+        hasAnchor: Boolean,
+    ): String? {
         if (hasAnchor) return null
-        if (camera.trackingState == TrackingState.PAUSED) {
-            return if (camera.trackingFailureReason == TrackingFailureReason.NONE) {
-                SEARCHING_MESSAGE
-            } else {
-                TrackingStateHelper.getTrackingFailureReasonString(camera)
+        if (trackingState == TrackingState.PAUSED) {
+            return when (failureReason) {
+                TrackingFailureReason.NONE -> SEARCHING_MESSAGE
+                TrackingFailureReason.BAD_STATE -> "Tracking lost. Try moving the camera."
+                TrackingFailureReason.INSUFFICIENT_LIGHT -> "Not enough light to track."
+                TrackingFailureReason.EXCESSIVE_MOTION -> "Moving too fast — slow down."
+                TrackingFailureReason.INSUFFICIENT_FEATURES -> "Point at a more textured surface."
+                TrackingFailureReason.CAMERA_UNAVAILABLE -> "Camera is unavailable."
+                else -> SEARCHING_MESSAGE
             }
         }
         return if (hasPlanes) TAP_TO_PLACE_MESSAGE else SEARCHING_MESSAGE
     }
 
-    /** Updates the snackbar pill, skipping no-op writes so the view tree doesn't churn. */
     private fun updateHint(message: String?) {
         if (lastHint == message) return
         lastHint = message
@@ -293,77 +405,11 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
         }
     }
 
-    override fun getView(): View = rootView
-
-    /**
-     * Releases the AR session (and its hold on the camera), the GL surface, the touch listener
-     * and the application-level lifecycle callbacks. Must run when the Flutter side removes this
-     * platform view, otherwise a re-open of the AR route reports `CAMERA_UNAVAILABLE` because
-     * ARCore can only own the camera through a single live `Session`.
-     */
-    override fun dispose() {
-        if (disposed) return
-        disposed = true
-
-        surfaceView.setOnTouchListener(null)
-        application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
-
-        // Hand off the session reference, then null the field so the GL thread's
-        // `val session = this.session ?: return` early-returns on any further frames.
-        val sessionToClose = session
-        session = null
-        anchor = null
-
-        // Close on the GL thread so it can't race with an in-flight `session.update()`.
-        // queueEvent runs before the thread fully pauses.
-        if (sessionToClose != null) {
-            surfaceView.queueEvent { sessionToClose.close() }
-        }
-        surfaceView.onPause()
-        displayRotationHelper.onPause()
-    }
-
     companion object {
-        private val TAG = FlutterArcoreView::class.java.simpleName
-
-        // Domain-specific copy (we only place on vertical planes — "walls"). To localize,
-        // override these strings via app resources and reference R.string here.
         private const val SEARCHING_MESSAGE = "Searching for surfaces…"
         private const val TAP_TO_PLACE_MESSAGE = "Tap a wall to place the object."
-    }
-
-    init {
-        init()
-        displayRotationHelper = DisplayRotationHelper(/*context=*/ context)
-
-        activityLifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-            override fun onActivityStarted(activity: Activity) {}
-            override fun onActivityResumed(activity: Activity) {
-                activityPaused = false
-                onResume()
-            }
-
-            override fun onActivityPaused(activity: Activity) {
-                activityPaused = true
-                onPause()
-            }
-
-            override fun onActivityStopped(activity: Activity) { onPause() }
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-            override fun onActivityDestroyed(activity: Activity) {
-                application.unregisterActivityLifecycleCallbacks(this)
-            }
-        }
-        application.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
-        installRequested = false
-
-        tapHelper = TapHelper(activity).also { surfaceView.setOnTouchListener(it) }
-        trackingStateHelper = TrackingStateHelper(activity)
-        try {
-            onResume()
-        } catch (e: Exception) {
-            ArPlugin.channel.invokeMethod("error", "Undefined error")
-        }
+        private const val MIN_SCALE = 0.25f
+        private const val MAX_SCALE = 4.0f
     }
 }
+

@@ -55,9 +55,10 @@ class _ArPageState extends State<ArPage> {
   @override
   void initState() {
     super.initState();
-    Node.fromGlbAsset('assets/model.glb').then((node) {
-      _controller.modelNode = node;
-    });
+    // Both platforms render the glb natively now (Filament/gltfio on
+    // Android, SceneKit + GLTFKit2 on iOS), so an asset path is all the
+    // controller needs.
+    _controller.modelAssetPath = 'assets/out.glb';
   }
 
   @override
@@ -87,9 +88,7 @@ class _ThreeDPageState extends State<ThreeDPage> {
   @override
   void initState() {
     super.initState();
-    Node.fromGlbAsset('assets/out(4).glb').then((node) {
-      _controller.modelNode = node;
-    });
+    _controller.modelAssetPath = 'assets/out.glb';
   }
 
   @override

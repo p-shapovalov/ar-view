@@ -2,7 +2,10 @@ group 'com.paidviewpoint.ar'
 version '1.0'
 
 buildscript {
-    ext.kotlin_version = '2.1.20'
+    // 2.3+ is required by sceneview 4.10.0 (its .kotlin_module binary
+    // metadata is 2.3.0, so anything < 2.3.0 fails compileKotlin with
+    // "incompatible version of Kotlin").
+    ext.kotlin_version = '2.3.21'
     repositories {
         google()
         mavenCentral()
@@ -11,6 +14,12 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.13.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        // Kotlin 2.0+ requires the standalone Compose compiler plugin once
+        // `buildFeatures.compose = true` is set. It pins a compatible
+        // compiler version automatically, replacing the legacy
+        // composeOptions.kotlinCompilerExtensionVersion setting.
+        // https://d.android.com/r/studio-ui/compose-compiler
+        classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version"
     }
 }
 
@@ -23,22 +32,31 @@ rootProject.allprojects {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 
 android {
     namespace 'com.paidviewpoint.ar'
     compileSdkVersion 36
 
+    // sceneview 4.10.0 ships JVM-21 inline bytecode, so we must compile
+    // against JVM 21 too (lower targets fail with "Cannot inline bytecode
+    // built with JVM target 21 into bytecode that is being built with JVM
+    // target 17"). AGP 8.13 + Kotlin 2.3 support this.
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '21'
     }
 
     defaultConfig {
         minSdkVersion 24
+    }
+
+    buildFeatures {
+        compose true
     }
 }
 
@@ -49,4 +67,19 @@ dependencies {
     implementation 'com.google.android.material:material:1.5.0'
     implementation "androidx.core:core-ktx:1.7.0"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    // Compose stack — SceneView 4.x is Compose-native. We host its
+    // ARSceneView composable inside a ComposeView returned from the
+    // PlatformView, so the rest of the app does not need Compose.
+    implementation platform('androidx.compose:compose-bom:2025.04.00')
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.foundation:foundation'
+    implementation 'androidx.activity:activity-compose:1.9.0'
+
+    // SceneView wraps Filament + ARCore. We use the AR variant so the same
+    // GL context renders the camera feed and the glb model — removing the
+    // Dart-side flutter_scene CustomPaint overlay (which had composition/sync
+    // jitter on Android) for the AR path.
+    implementation 'io.github.sceneview:sceneview:4.10.0'
+    implementation 'io.github.sceneview:arsceneview:4.10.0'
 }

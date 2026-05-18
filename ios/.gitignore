@@ -36,3 +36,6 @@ Icon?
 /Flutter/Generated.xcconfig
 /Flutter/ephemeral/
 /Flutter/flutter_export_environment.sh
+
+# Fetched on pod install — see ar.podspec prepare_command.
+Frameworks/

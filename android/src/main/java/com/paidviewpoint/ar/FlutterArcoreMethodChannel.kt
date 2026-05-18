@@ -1,69 +1,61 @@
 package com.paidviewpoint.ar
 
-import android.opengl.Matrix
-import com.google.ar.core.HitResult
-import com.google.ar.core.Plane
-import com.google.ar.core.Pose
 import io.flutter.plugin.common.BinaryMessenger
-import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 
-//class FlutterArCoreImage(map: HashMap<String, *>) {
-//    val width: Int = map["width"] as Int
-//    val height: Int = map["height"] as Int
-//    val bytes: ByteArray = map["bytes"] as ByteArray
-//    val transformation: FloatArray = (map["transformation"] as DoubleArray).map { it.toFloat() }.toFloatArray()
-//}
-
+/**
+ * Per-view method-channel surface between Dart and the native AR view.
+ *
+ * Direction              | Method          | Payload
+ * -----------------------+-----------------+------------------------------------
+ * Dart → Native          | loadModel       | { modelPath: String, fitMeters: Double }
+ * Native → Dart          | onPlaneTap      | { hitMatrix: FloatArray(16) }
+ * Native → Dart          | onTrackingState | { trackingState: String, trackingFailureReason: String, hasPlanes: Boolean }
+ */
 abstract class FlutterArcoreMethodChannel(messenger: BinaryMessenger, id: Int) : MethodCallHandler {
-    private val methodChannel: MethodChannel =
-        MethodChannel(messenger, "ar_$id")
+    private val methodChannel: MethodChannel = MethodChannel(messenger, "ar_$id")
 
-//    private val eventChannel = EventChannel(messenger, "ar_stream_$id")
-
-    override fun onMethodCall(methodCall: MethodCall, result: MethodChannel.Result) {
-//        if (methodCall.method == "add_image") {
-//            val map = methodCall.arguments as HashMap<String, Any>
-//            val image = FlutterArCoreImage(map)
-//            addImage(image)
-//        }
-        result.success(null)
+    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        when (call.method) {
+            "loadModel" -> {
+                val path = call.argument<String>("modelPath")
+                if (path == null) {
+                    result.error("INVALID_ARG", "modelPath is required", null)
+                    return
+                }
+                val fitMeters = call.argument<Double>("fitMeters")?.toFloat() ?: 2.0f
+                onLoadModel(path, fitMeters)
+                result.success(null)
+            }
+            else -> result.notImplemented()
+        }
     }
 
-//    abstract fun addImage(image: FlutterArCoreImage)
+    /** Implemented by [FlutterArcoreView] to receive `loadModel` requests. */
+    protected abstract fun onLoadModel(modelPath: String, fitMeters: Float)
 
-    fun onFrame(
-        projectionMatrix: FloatArray,
-        viewMatrix: FloatArray,
-        hasPlanes: Boolean,
-        trackingState: String,
-        trackingFailureReason: String,
-    ) {
-        val frameResult = HashMap<String, Any>()
-        frameResult["projectionMatrix"] = projectionMatrix
-        frameResult["viewMatrix"] = viewMatrix
-        frameResult["hasPlanes"] = hasPlanes
-        // ARCore enum names — passed through verbatim so the Dart side can localize
-        // and so we don't have to bump the channel protocol when new reasons are added.
-        frameResult["trackingState"] = trackingState
-        frameResult["trackingFailureReason"] = trackingFailureReason
-
-        methodChannel.invokeMethod("onFrame", frameResult)
+    fun onPlaneTap(hitMatrix: FloatArray) {
+        val payload = HashMap<String, Any>(1)
+        payload["hitMatrix"] = hitMatrix
+        methodChannel.invokeMethod("onPlaneTap", payload)
     }
 
-    fun onPlaneTap(hitPose: Pose) {
-        val hitMatrix = FloatArray(16)
-        hitPose.toMatrix(hitMatrix, 0)
-
-        val serializedHitResult = HashMap<String, Any>()
-        serializedHitResult["hitMatrix"] = hitMatrix
-
-        methodChannel.invokeMethod("onPlaneTap", serializedHitResult)
+    /**
+     * Tracking-state snapshot streamed once per ARCore frame. Enum names
+     * pass through verbatim so the Dart side can localize and so we don't
+     * have to bump the channel protocol when new ARCore reasons are added.
+     */
+    fun onTrackingState(trackingState: String, trackingFailureReason: String, hasPlanes: Boolean) {
+        val payload = HashMap<String, Any>(3)
+        payload["trackingState"] = trackingState
+        payload["trackingFailureReason"] = trackingFailureReason
+        payload["hasPlanes"] = hasPlanes
+        methodChannel.invokeMethod("onTrackingState", payload)
     }
 
-    fun init() {
+    fun attachMethodChannel() {
         methodChannel.setMethodCallHandler(this)
     }
 }

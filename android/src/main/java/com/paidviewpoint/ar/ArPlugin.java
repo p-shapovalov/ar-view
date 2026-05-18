@@ -31,6 +31,7 @@ public class ArPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware
     channel.setMethodCallHandler(this);
 
     flutterPluginBinding.getPlatformViewRegistry().registerViewFactory("com.paidviewpoint.ar", new ArcoreViewFactory(flutterPluginBinding.getBinaryMessenger()));
+    flutterPluginBinding.getPlatformViewRegistry().registerViewFactory("com.paidviewpoint.three_d", new Flutter3DViewFactory(flutterPluginBinding.getBinaryMessenger()));
   }
 
   @Override

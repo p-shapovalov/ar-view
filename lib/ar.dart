@@ -11,7 +11,6 @@ import 'package:permission_handler/permission_handler.dart';
 export 'package:ar/model.dart';
 export 'package:ar/transform_ar_view.dart';
 export 'package:ar/transform_3d_view.dart';
-export 'package:flutter_scene/scene.dart' show Camera, Node, Scene;
 
 ValueNotifier<String?> lastError = ValueNotifier(null);
 
@@ -36,87 +35,54 @@ Future<bool> checkArAvailability() async {
 }
 
 typedef ArViewCreatedCallback = void Function(ArViewController controller);
-typedef ArHitCallback = void Function(ARHitResult controller);
-typedef ArFrameCallback = void Function(ARFrameResult controller);
+typedef ArHitCallback = void Function(ARHitResult result);
+typedef ArTrackingCallback = void Function(ARTrackingState state);
 
 class ArView extends StatefulWidget {
-  const ArView(
-      {super.key,
-      required this.onArViewCreated,
-      required this.onPlaneTap,
-      required this.onFrame,
-      required this.controller,
-      this.width = 300,
-      this.height = 300});
+  const ArView({
+    super.key,
+    required this.onArViewCreated,
+    required this.onPlaneTap,
+    required this.controller,
+    this.onTrackingState,
+    this.width = 300,
+    this.height = 300,
+  });
 
   final TransformArViewController controller;
   final double width;
   final double height;
   final ArViewCreatedCallback onArViewCreated;
   final ArHitCallback onPlaneTap;
-  final ArFrameCallback onFrame;
+  final ArTrackingCallback? onTrackingState;
 
   @override
   ArViewState createState() => ArViewState();
 }
 
-class ArViewState extends State<ArView> with WidgetsBindingObserver {
-  @override
-  void initState() {
-    WidgetsBinding.instance.addObserver(this);
-    super.initState();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      setState(() {
-        widget.controller.reset();
-      });
-    }
-
-    super.didChangeAppLifecycleState(state);
-  }
+class ArViewState extends State<ArView> {
+  static const String _viewType = 'com.paidviewpoint.ar';
 
   @override
   Widget build(BuildContext context) {
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return SizedBox(
-          width: widget.width,
-          height: widget.height,
-          child: Stack(
-            alignment: Alignment.center,
-            children: <Widget>[
-              AndroidView(
-                viewType: 'com.paidviewpoint.ar',
-                onPlatformViewCreated: _onPlatformViewCreated,
-              )
-            ],
-          ));
-    } else {
-      return SizedBox(
-          width: widget.width,
-          height: widget.height,
-          child: Stack(
-            alignment: Alignment.center,
-            children: <Widget>[
-              UiKitView(
-                viewType: 'com.paidviewpoint.ar',
-                onPlatformViewCreated: _onPlatformViewCreated,
-              )
-            ],
-          ));
-    }
+    final Widget platformView = defaultTargetPlatform == TargetPlatform.android
+        ? AndroidView(
+            viewType: _viewType,
+            onPlatformViewCreated: _onPlatformViewCreated,
+          )
+        : UiKitView(
+            viewType: _viewType,
+            onPlatformViewCreated: _onPlatformViewCreated,
+          );
+    return SizedBox(
+      width: widget.width,
+      height: widget.height,
+      child: platformView,
+    );
   }
 
   void _onPlatformViewCreated(int id) =>
       widget.onArViewCreated(ArViewController(id, widget));
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
 }
 
 class ArViewController {
@@ -130,12 +96,23 @@ class ArViewController {
 
   Future<dynamic> _handleMethodCalls(MethodCall methodCall) async {
     switch (methodCall.method) {
-      case 'onFrame':
-        widget.onFrame(ARFrameResult.fromJson(methodCall.arguments));
+      case 'onTrackingState':
+        widget.onTrackingState
+            ?.call(ARTrackingState.fromJson(methodCall.arguments));
         break;
       case 'onPlaneTap':
         widget.onPlaneTap(ARHitResult.fromJson(methodCall.arguments));
         break;
     }
+  }
+
+  /// Tell the native renderer to load a glb (Filament/gltfio on Android,
+  /// SceneKit + GLTFKit2 on iOS). Asset path is resolved natively against
+  /// Flutter's bundled assets.
+  Future<void> loadModel(String assetPath, {double fitMeters = 2.0}) {
+    return _channel.invokeMethod('loadModel', {
+      'modelPath': assetPath,
+      'fitMeters': fitMeters,
+    });
   }
 }
