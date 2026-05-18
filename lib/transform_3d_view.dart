@@ -11,6 +11,10 @@ import 'package:ar/matrix_gesture_detector.dart';
 const double _kCameraZ = 5.0;
 const double _kFovY = math.pi / 3; // 60°
 
+// Fraction of the viewport's smaller world-space dimension that the
+// model's largest extent should occupy after auto-fit.
+const double _kFitMargin = 0.8;
+
 // Same conversion helper as transform_ar_view.dart.
 vm.Matrix4 _m64ToVm(vm64.Matrix4 m) => vm.Matrix4.fromList(m.storage);
 
@@ -53,21 +57,28 @@ class TransformThreeDViewController {
 
   final Scene scene = Scene();
 
-  Node? _modelNode;
+  Node? _modelNode; // user-supplied node (inner, holds auto-fit transform)
+  Node? _modelWrapper; // scene-attached wrapper that gestures drive
   // Accumulated gesture matrix in Flutter pixel space (vm64, same as framework Matrix4).
   Matrix4 _gestureMatrix = Matrix4.identity();
 
   TransformThreeDViewController() {
     // Re-apply node transform once the viewport size is known (first paint).
-    _viewportSize.addListener(_applyGestureToNode);
+    _viewportSize.addListener(_onViewportChanged);
   }
 
   Node? get modelNode => _modelNode;
 
   set modelNode(Node? node) {
+    if (_modelWrapper != null) {
+      scene.remove(_modelWrapper!);
+      _modelWrapper = null;
+    }
     _modelNode = node;
     if (node != null) {
-      scene.add(node);
+      _modelWrapper = Node(name: 'fit_wrapper')..add(node);
+      scene.add(_modelWrapper!);
+      _applyAutoFit();
       _applyGestureToNode();
     }
     _repaint.value++;
@@ -80,15 +91,47 @@ class TransformThreeDViewController {
   }
 
   void dispose() {
-    _viewportSize.removeListener(_applyGestureToNode);
+    _viewportSize.removeListener(_onViewportChanged);
     _repaint.dispose();
     _viewportSize.dispose();
   }
 
-  void _applyGestureToNode() {
+  void _onViewportChanged() {
+    _applyAutoFit();
+    _applyGestureToNode();
+  }
+
+  /// Auto-fits the model so its largest extent is [_kFitMargin] × the
+  /// smaller of the viewport's world-space width/height at z=0.
+  /// The fit is baked into the inner node's `localTransform`; gestures
+  /// then compose on top via the wrapper's `globalTransform`.
+  void _applyAutoFit() {
     final node = _modelNode;
     final size = _viewportSize.value;
     if (node == null || size == null) return;
+
+    final bounds = node.combinedLocalBounds;
+    if (bounds == null) return;
+
+    final extent = bounds.max - bounds.min;
+    final maxExtent = math.max(extent.x, math.max(extent.y, extent.z));
+    if (maxExtent <= 0) return;
+
+    final center = (bounds.min + bounds.max) * 0.5;
+    final visH = 2 * _kCameraZ * math.tan(_kFovY / 2);
+    final visW = visH * size.width / size.height;
+    final target = math.min(visW, visH) * _kFitMargin;
+    final s = target / maxExtent;
+
+    node.localTransform = vm.Matrix4.identity()
+      ..scaleByDouble(s, s, s, 1.0)
+      ..translateByDouble(-center.x, -center.y, -center.z, 1.0);
+  }
+
+  void _applyGestureToNode() {
+    final wrapper = _modelWrapper;
+    final size = _viewportSize.value;
+    if (wrapper == null || size == null) return;
 
     final m = _gestureMatrix;
     final tx = m.storage[12]; // pixel translation X
@@ -107,7 +150,7 @@ class TransformThreeDViewController {
       ..scaleByDouble(scale, scale, scale, 1.0)
       ..rotateY(rotY + math.pi); // +π: model front faces camera (camera looks in +Z, model designed for -Z)
 
-    node.globalTransform = _m64ToVm(worldTransform);
+    wrapper.globalTransform = _m64ToVm(worldTransform);
   }
 }
 

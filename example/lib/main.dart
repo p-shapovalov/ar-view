@@ -55,7 +55,7 @@ class _ArPageState extends State<ArPage> {
   @override
   void initState() {
     super.initState();
-    Node.fromGlbAsset('assets/model.glb').then((node) {
+    Node.fromGlbAsset('assets/out.glb').then((node) {
       _controller.modelNode = node;
     });
   }
@@ -81,7 +81,7 @@ class _ThreeDPageState extends State<ThreeDPage> {
   @override
   void initState() {
     super.initState();
-    Node.fromGlbAsset('assets/model.glb').then((node) {
+    Node.fromGlbAsset('assets/out.glb').then((node) {
       _controller.modelNode = node;
     });
   }

@@ -2,9 +2,15 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:ar/ar.dart';
+import 'package:ar/fit_node.dart';
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:vector_math/vector_math_64.dart' as vm64;
+
+// Auto-fit target: the loaded model's largest extent is normalized to
+// fit within a 2 m cube, so the placed object reads as roughly 2 m on
+// its longest axis regardless of the source asset's authored scale.
+const double _kArFitMeters = 2.0;
 
 // AR matrices (from ARFrameResult / Flutter) use vector_math_64.
 // flutter_scene (Camera / Node) uses vector_math (non-64).
@@ -55,7 +61,8 @@ class TransformArViewController {
   final Scene scene = Scene();
   final ArCamera _arCamera = ArCamera();
 
-  Node? _modelNode;
+  Node? _modelNode; // user-supplied node (inner, holds auto-fit transform)
+  Node? _modelWrapper; // scene-attached wrapper that plane placement drives
   Matrix4? planeMatrix;
   Matrix4? planeMatrixOnSurface;
 
@@ -64,9 +71,14 @@ class TransformArViewController {
   Node? get modelNode => _modelNode;
 
   set modelNode(Node? node) {
+    if (_modelWrapper != null) {
+      scene.remove(_modelWrapper!);
+      _modelWrapper = null;
+    }
     _modelNode = node;
     if (node != null) {
-      scene.add(node);
+      _modelWrapper = fitNode(node, _kArFitMeters)..visible = false;
+      scene.add(_modelWrapper!);
       _repaint.value++;
     }
   }
@@ -74,6 +86,7 @@ class TransformArViewController {
   void reset() {
     planeMatrix = null;
     planeMatrixOnSurface = null;
+    _modelWrapper?.visible = false;
     _repaint.value++;
   }
 }
@@ -124,8 +137,15 @@ class TransformArView extends StatelessWidget {
         plane = controller.mapPlane!(
             plane, frame.projectionMatrix * frame.viewMatrix * plane);
       }
-      // Convert vm64 → vm at the flutter_scene boundary
-      controller._modelNode?.globalTransform = _m64ToVm(plane);
+      // Convert vm64 → vm at the flutter_scene boundary. Drive the
+      // wrapper, not the inner model — the inner node carries the
+      // auto-fit transform.
+      final wrapper = controller._modelWrapper;
+      if (wrapper != null) {
+        wrapper
+          ..globalTransform = _m64ToVm(plane)
+          ..visible = true;
+      }
     }
 
     controller.planeDetected.value = frame.hasPlanes;
