@@ -34,19 +34,21 @@ abstract class FlutterArcoreMethodChannel(messenger: BinaryMessenger, id: Int) :
 
 //    abstract fun addImage(image: FlutterArCoreImage)
 
-    fun onFrame(projectionMatrix: FloatArray, viewMatrix: FloatArray, hasPlanes: Boolean) {
-//        val modelMatrix = FloatArray(16)
-//        Matrix.setRotateEulerM(modelMatrix, 0, 0f, 0f, 0f)
-//
-//        val modelViewMatrix = FloatArray(16)
-//        Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0)
-//        val modelViewProjectionMatrix = FloatArray(16)
-//        Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0)
-
+    fun onFrame(
+        projectionMatrix: FloatArray,
+        viewMatrix: FloatArray,
+        hasPlanes: Boolean,
+        trackingState: String,
+        trackingFailureReason: String,
+    ) {
         val frameResult = HashMap<String, Any>()
-        frameResult["projectionMatrix"] = projectionMatrix // Type plane
-        frameResult["viewMatrix"] = viewMatrix // Type p
-        frameResult["hasPlanes"] = hasPlanes// lane
+        frameResult["projectionMatrix"] = projectionMatrix
+        frameResult["viewMatrix"] = viewMatrix
+        frameResult["hasPlanes"] = hasPlanes
+        // ARCore enum names — passed through verbatim so the Dart side can localize
+        // and so we don't have to bump the channel protocol when new reasons are added.
+        frameResult["trackingState"] = trackingState
+        frameResult["trackingFailureReason"] = trackingFailureReason
 
         methodChannel.invokeMethod("onFrame", frameResult)
     }

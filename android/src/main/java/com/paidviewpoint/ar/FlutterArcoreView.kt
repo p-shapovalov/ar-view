@@ -3,10 +3,18 @@ package com.paidviewpoint.ar
 import android.app.Activity
 import android.app.Application
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.FrameLayout
+import android.widget.TextView
 import com.google.ar.core.*
 import com.google.ar.core.ArCoreApk.InstallStatus
 import com.google.ar.core.exceptions.CameraNotAvailableException
@@ -14,6 +22,7 @@ import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException
 import common.helpers.DisplayRotationHelper
 import common.helpers.TapHelper
+import common.helpers.TrackingStateHelper
 import common.samplerender.SampleRender
 import common.samplerender.arcore.BackgroundRenderer
 import common.samplerender.arcore.PlaneRenderer
@@ -24,6 +33,9 @@ import java.io.IOException
 class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) : PlatformView,
     FlutterArcoreMethodChannel(messenger, id), SampleRender.Renderer {
 
+    // Held so `dispose()` can unregister our application-level lifecycle callbacks.
+    private val application = context.applicationContext as Application
+
     // GLES3 rendering framework + AR helpers.
     private val surfaceView = GLSurfaceView(context)
     private val render: SampleRender = SampleRender(surfaceView, this, context.assets)
@@ -31,18 +43,52 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
     private var planeRenderer: PlaneRenderer? = null
     private var hasSetCameraTextureName = false
 
+    // Native instruction overlay (snackbar-style pill at the bottom). The state machine
+    // mirrors hello_ar_java's HelloArActivity#onDrawFrame: searching → tap-to-place →
+    // hidden, with TrackingFailureReason strings surfaced when tracking is paused.
+    private val hintView: TextView = TextView(context).apply {
+        val density = context.resources.displayMetrics.density
+        val padH = (16 * density).toInt()
+        val padV = (10 * density).toInt()
+        setPadding(padH, padV, padH, padV)
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+        setTextColor(Color.WHITE)
+        gravity = Gravity.CENTER
+        background = GradientDrawable().apply {
+            cornerRadius = 20 * density
+            setColor(0xBF323232.toInt())
+        }
+        visibility = View.GONE
+    }
+    private val rootView: FrameLayout = FrameLayout(context).apply {
+        addView(surfaceView, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+        val density = context.resources.displayMetrics.density
+        val hintLp = FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
+            gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+            bottomMargin = (24 * density).toInt()
+            leftMargin = (24 * density).toInt()
+            rightMargin = (24 * density).toInt()
+        }
+        addView(hintView, hintLp)
+    }
+    private var lastHint: String? = null
+
     private var installRequested: Boolean
-    private var session: Session? = null
+    // @Volatile so the GL thread sees `session = null` (set on dispose) without caching.
+    @Volatile private var session: Session? = null
+    @Volatile private var disposed = false
     private val displayRotationHelper: DisplayRotationHelper
     private var shouldConfigureSession = false
     private val activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks
     private var activityPaused = false
     private val tapHelper: TapHelper
+    private val trackingStateHelper: TrackingStateHelper
     private val activity get() = ArPlugin.activityPluginBinding.activity
 
     private var anchor: Anchor? = null
 
     private fun onPause() {
+        if (disposed) return
         if (session != null) {
             // Note that the order matters - GLSurfaceView is paused first so that it does not try
             // to query the session. If Session is paused before GLSurfaceView, GLSurfaceView may
@@ -53,6 +99,7 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
     }
 
     private fun onResume() {
+        if (disposed) return
         if (session == null) {
             var message: String? = null
             try {
@@ -87,8 +134,9 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
             session!!.resume()
         } catch (e: CameraNotAvailableException) {
             // In some cases (such as another camera app launching) the camera may be given to
-            // a different app instead. Handle this properly by showing a message and recreate the
-            // session at the next iteration.
+            // a different app instead. Close the just-created session so its native resources
+            // don't leak, then null it out so the next onResume() attempts a fresh create.
+            session?.close()
             session = null
             ArPlugin.channel.invokeMethod("error", "Camera is not available")
             return
@@ -151,19 +199,38 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
             bg.updateDisplayGeometry(frame)
             bg.drawBackground(render)
 
+            // Hold the screen on while tracking; let it sleep when tracking stops.
+            trackingStateHelper.updateKeepScreenOnFlag(camera.trackingState)
+
             val projectionMatrix = FloatArray(16)
             camera.getProjectionMatrix(projectionMatrix, 0, 0.1f, 100.0f)
             val viewMatrix = FloatArray(16)
             camera.getViewMatrix(viewMatrix, 0)
 
-            // If not tracking, don't draw 3d objects.
-            if (camera.trackingState != TrackingState.TRACKING) return
+            // Even when not tracking, surface state to Dart so apps can build custom UIs.
+            // We compute plane info only when tracking is healthy.
+            val isTracking = camera.trackingState == TrackingState.TRACKING
+            val verticalPlanes = if (isTracking) {
+                session.getAllTrackables(Plane::class.java)
+                    .filter { it.type == Plane.Type.VERTICAL && it.trackingState == TrackingState.TRACKING }
+            } else {
+                emptyList()
+            }
+            val trackingStateName = camera.trackingState.name
+            val failureReasonName = camera.trackingFailureReason.name
+            val hintMessage = computeHint(camera, verticalPlanes.isNotEmpty(), anchor != null)
+            activity.runOnUiThread {
+                updateHint(hintMessage)
+                onFrame(
+                    projectionMatrix,
+                    viewMatrix,
+                    verticalPlanes.isNotEmpty(),
+                    trackingStateName,
+                    failureReasonName,
+                )
+            }
 
-            val verticalPlanes = session.getAllTrackables(Plane::class.java)
-                .filter { it.type == Plane.Type.VERTICAL }
-
-            activity.runOnUiThread { onFrame(projectionMatrix, viewMatrix, verticalPlanes.isNotEmpty()) }
-
+            if (!isTracking) return
             if (anchor != null) return
             handleTap(frame, camera)
             planes.drawPlanes(render, verticalPlanes, camera.displayOrientedPose, projectionMatrix)
@@ -192,19 +259,83 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
         }
     }
 
-    override fun getView(): View = surfaceView
+    /**
+     * State machine mirroring `HelloArActivity#onDrawFrame`:
+     *  - placed model → no hint
+     *  - PAUSED + failure reason → reason-specific copy
+     *  - PAUSED, no reason → "searching" (still bootstrapping)
+     *  - TRACKING + no planes → "searching"
+     *  - TRACKING + planes → "tap a wall"
+     *
+     * Returns the hint text to show, or `null` to hide the overlay.
+     */
+    private fun computeHint(camera: Camera, hasPlanes: Boolean, hasAnchor: Boolean): String? {
+        if (hasAnchor) return null
+        if (camera.trackingState == TrackingState.PAUSED) {
+            return if (camera.trackingFailureReason == TrackingFailureReason.NONE) {
+                SEARCHING_MESSAGE
+            } else {
+                TrackingStateHelper.getTrackingFailureReasonString(camera)
+            }
+        }
+        return if (hasPlanes) TAP_TO_PLACE_MESSAGE else SEARCHING_MESSAGE
+    }
 
-    override fun dispose() {}
+    /** Updates the snackbar pill, skipping no-op writes so the view tree doesn't churn. */
+    private fun updateHint(message: String?) {
+        if (lastHint == message) return
+        lastHint = message
+        if (message == null) {
+            hintView.visibility = View.GONE
+        } else {
+            hintView.text = message
+            hintView.visibility = View.VISIBLE
+        }
+    }
+
+    override fun getView(): View = rootView
+
+    /**
+     * Releases the AR session (and its hold on the camera), the GL surface, the touch listener
+     * and the application-level lifecycle callbacks. Must run when the Flutter side removes this
+     * platform view, otherwise a re-open of the AR route reports `CAMERA_UNAVAILABLE` because
+     * ARCore can only own the camera through a single live `Session`.
+     */
+    override fun dispose() {
+        if (disposed) return
+        disposed = true
+
+        surfaceView.setOnTouchListener(null)
+        application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
+
+        // Hand off the session reference, then null the field so the GL thread's
+        // `val session = this.session ?: return` early-returns on any further frames.
+        val sessionToClose = session
+        session = null
+        anchor = null
+
+        // Close on the GL thread so it can't race with an in-flight `session.update()`.
+        // queueEvent runs before the thread fully pauses.
+        if (sessionToClose != null) {
+            surfaceView.queueEvent { sessionToClose.close() }
+        }
+        surfaceView.onPause()
+        displayRotationHelper.onPause()
+    }
 
     companion object {
         private val TAG = FlutterArcoreView::class.java.simpleName
+
+        // Domain-specific copy (we only place on vertical planes — "walls"). To localize,
+        // override these strings via app resources and reference R.string here.
+        private const val SEARCHING_MESSAGE = "Searching for surfaces…"
+        private const val TAP_TO_PLACE_MESSAGE = "Tap a wall to place the object."
     }
 
     init {
         init()
         displayRotationHelper = DisplayRotationHelper(/*context=*/ context)
 
-        val application = context.applicationContext as Application
         activityLifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
             override fun onActivityStarted(activity: Activity) {}
@@ -228,6 +359,7 @@ class FlutterArcoreView(context: Context, messenger: BinaryMessenger, id: Int) :
         installRequested = false
 
         tapHelper = TapHelper(activity).also { surfaceView.setOnTouchListener(it) }
+        trackingStateHelper = TrackingStateHelper(activity)
         try {
             onResume()
         } catch (e: Exception) {

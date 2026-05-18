@@ -53,8 +53,18 @@ class _ArScenePainter extends CustomPainter {
   bool shouldRepaint(_ArScenePainter old) => true;
 }
 
+/// Controller for [TransformArView]. The default user-facing hint
+/// ("Searching for surfaces…", "Tap a wall to place the object.",
+/// tracking-failure copy) is rendered natively by the Android platform view —
+/// see `FlutterArcoreView.computeHint`. The tracking-state notifiers below
+/// are still exposed so apps can drive their own custom UI.
 class TransformArViewController {
   final ValueNotifier<bool> planeDetected = ValueNotifier(false);
+  final ValueNotifier<ArTrackingState> trackingState =
+      ValueNotifier(ArTrackingState.unknown);
+  final ValueNotifier<ArTrackingFailureReason> trackingFailureReason =
+      ValueNotifier(ArTrackingFailureReason.none);
+
   final ValueNotifier<int> _repaint = ValueNotifier(0);
   final Matrix4 Function(Matrix4 plane, Matrix4 viewProjection)? mapPlane;
 
@@ -89,6 +99,13 @@ class TransformArViewController {
     _modelWrapper?.visible = false;
     _repaint.value++;
   }
+
+  void dispose() {
+    planeDetected.dispose();
+    trackingState.dispose();
+    trackingFailureReason.dispose();
+    _repaint.dispose();
+  }
 }
 
 class TransformArView extends StatelessWidget {
@@ -118,11 +135,15 @@ class TransformArView extends StatelessWidget {
           size: Size.infinite,
         ),
       ),
+      // Default hint pill ("Searching for surfaces…", failure reasons,
+      // "Tap a wall…") is rendered natively by FlutterArcoreView so it
+      // composes correctly with the underlying camera SurfaceView.
     ]);
   }
 
-  void _onPlaneTap(BuildContext context, ARHitResult hit) =>
-      controller.planeMatrix = hit.hitMatrix;
+  void _onPlaneTap(BuildContext context, ARHitResult hit) {
+    controller.planeMatrix = hit.hitMatrix;
+  }
 
   void _onFrame(BuildContext context, ARFrameResult frame) {
     controller._arCamera.update(frame.projectionMatrix, frame.viewMatrix);
@@ -149,6 +170,8 @@ class TransformArView extends StatelessWidget {
     }
 
     controller.planeDetected.value = frame.hasPlanes;
+    controller.trackingState.value = frame.trackingState;
+    controller.trackingFailureReason.value = frame.trackingFailureReason;
     controller._repaint.value++;
   }
 
