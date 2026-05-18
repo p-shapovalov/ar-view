@@ -1,5 +1,6 @@
 /*
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +15,6 @@
  */
 package common.helpers;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -65,7 +65,6 @@ public final class TapHelper implements OnTouchListener {
   }
 
   @Override
-  @SuppressLint("ClickableViewAccessibility")
   public boolean onTouch(View view, MotionEvent motionEvent) {
     return gestureDetector.onTouchEvent(motionEvent);
   }
